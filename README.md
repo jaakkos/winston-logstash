@@ -8,7 +8,7 @@ A [Logstash TCP][0] transport for [winston][1].
 
   //
   // Requiring `winston-logstash` will expose
-  // `winston.transports.Logio`
+  // `winston.transports.Logstash`
   //
   require('winston-logstash');
 
@@ -30,9 +30,10 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ## TODO
 
-1. Cleanup & check tests
+1. Cleanup & check tests & travis
 2. SSL Support
-3. Change format
+3. Support for different formats
+4. ???
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 #### License: MIT
