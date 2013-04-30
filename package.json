@@ -1,0 +1,51 @@
+{
+  "name": "winston-logstash",
+  "version": "0.0.1RC",
+  "description": "A Log.io transport for winston",
+  "main": "./lib/winston-logstash",
+  "homepage": "https://github.com/jaakkos/winston-logstash",
+  "scripts": {
+    "test": "mocha test/*_test.js"
+  },
+  "engines": {
+    "node": ">=0.8.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaakkos/winston-logstash.git"
+  },
+  "dependencies": {
+    "winston": ">=0.6.2"
+  },
+  "devDependencies": {
+    "winston": ">=0.6.2",
+    "mocha": ">=1.8.2",
+    "chai": ">=1.5.0",
+    "timekeeper": ">=0.0.3"
+  },
+  "keywords": [
+    "logging",
+    "sysadmin",
+    "tools"
+  ],
+  "bugs": {
+    "url" : "https://github.com/jaakkos/winston-logstash/issues"
+  },
+  "author": {
+    "name": "Jaakko Suutarla",
+    "email": "jaakko@suutarla.com"
+  },
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Jaakko Suutarla",
+      "email": "jaakko@suutarla.com"
+    }
+  ],
+  "maintainers": [
+    {
+      "name": "Jaakko Suutarla",
+      "email": "jaakko@suutarla.com"
+    }
+  ]
+}
