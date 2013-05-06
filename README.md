@@ -1,5 +1,7 @@
 # winston-logstash
 
+[![Build Status](https://travis-ci.org/jaakkos/winston-logstash.png?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
+
 A [Logstash TCP][0] transport for [winston][1].
 
 ## Usage
@@ -30,10 +32,9 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ## TODO
 
-1. Cleanup & check tests & travis
-2. SSL Support
-3. Support for different formats
-4. ???
+1. SSL Support
+2. Support for different formats
+3. ???
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 #### License: MIT
