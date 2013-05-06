@@ -5,6 +5,9 @@
 A [Logstash TCP][0] transport for [winston][1].
 
 ## Usage
+
+### Node
+
 ``` js
   var winston = require('winston');
 
@@ -19,6 +22,18 @@ A [Logstash TCP][0] transport for [winston][1].
     node_name: 'my node name',
     host: '127.0.0.1'
   });
+```
+
+### Logstash config
+
+``` ruby
+  input {
+    # Sample input over TCP
+    tcp { format => "json" charset => "UTF-8" port => 28777 type=>"sample" }
+  }
+  output {
+    stdout { debug => true debug_format => "json"}
+  }
 ```
 
 ## Inspiration
