@@ -46,12 +46,11 @@ describe('winston-logstash transport', function() {
 
       test_server = createTestServer(port, function (data) {
         response = data.toString();
-        console.log(response)
-        expect(response).to.be.equal('{"stream":"worker_feed_split","level":"info","message":"hello world"}');
+        expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world"}');
         done();
       });
-      logger.log('info', 'hello world', {stream: 'worker_feed_split'});
-      done();
+
+      logger.log('info', 'hello world', {stream: 'sample'});
     });
 
     // Teardown
@@ -66,18 +65,24 @@ describe('winston-logstash transport', function() {
   });
 
   describe('without logstash server', function () {
-    it('fallback to silent mode if log.io server is down', function(done) {
+    var checkSocketStatus = function (retries, logger, done) {
+      var interval = setInterval(function() {
+        if (logger.transports.logstash.retries == retries) {
+          done();
+          clearInterval(interval);
+        }
+      }, 250);
+    };
+
+    it('fallback to silent mode if logstash server is down', function(done) {
       var response;
       var logger = createLogger(28747);
-      logger.log('info', 'hello world', {stream: 'worker_feed_split'});
+      logger.log('info', 'hello world', {stream: 'sample'});
 
-      expect(logger.transports.logstash.retries).to.be.equal(0);
-
-      setTimeout( function () {
-        expect(logger.transports.logstash.retries).to.be.equal(3);
+      checkSocketStatus (4, logger, function() {
         expect(logger.transports.logstash.silent).to.be.true;
         done();
-      }, 1000);
+      });
 
     });
   });
