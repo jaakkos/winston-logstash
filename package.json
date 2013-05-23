@@ -1,7 +1,7 @@
 {
   "name": "winston-logstash",
-  "version": "0.1.0",
-  "description": "A Log.io transport for winston",
+  "version": "0.1.1",
+  "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
   "scripts": {
