@@ -52,7 +52,10 @@ A [Logstash TCP][0] transport for [winston][1].
 3. ???
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
+
 #### License: MIT
+
+See LICENSE for the full license text.
 
 [0]: http://logstash.net/
 [1]: https://github.com/flatiron/winston
