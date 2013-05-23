@@ -40,13 +40,27 @@ describe('winston-logstash transport', function() {
       done();
     });
 
-    it('send logs over TCP', function(done) {
+    it('send logs over TCP as valid json', function(done) {
+      var response;
+      var logger = createLogger(port);
+      var expected = {"stream":"sample","level":"info","message":"hello world"};
+
+      test_server = createTestServer(port, function (data) {
+        response = data.toString();
+        expect(JSON.parse(response)).to.be.eql(expected);
+        done();
+      });
+
+      logger.log('info', 'hello world', {stream: 'sample'});
+    });
+
+    it('send each log with a new line character', function(done) {
       var response;
       var logger = createLogger(port);
 
       test_server = createTestServer(port, function (data) {
         response = data.toString();
-        expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world"}');
+        expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world"}\n');
         done();
       });
 
