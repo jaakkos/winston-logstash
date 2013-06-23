@@ -47,6 +47,7 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ## TODO
 
+0. Write better documentation
 1. SSL Support
 2. Support for different formats
 3. ???
