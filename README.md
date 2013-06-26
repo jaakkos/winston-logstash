@@ -42,15 +42,13 @@ A [Logstash TCP][0] transport for [winston][1].
 ## Run Tests
 
 ```
-  npm test
+  NODE_TLS_REJECT_UNAUTHORIZED=0 npm test
 ```
 
 ## TODO
 
-0. Write better documentation
-1. SSL Support
-2. Support for different formats
-3. ???
+1. Support for different formats
+2. ???
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 
