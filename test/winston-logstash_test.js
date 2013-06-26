@@ -3,6 +3,8 @@ process.env.NODE_ENV = 'test';
 var chai = require('chai'),
     expect = chai.expect,
     net = require('net'),
+    tls = require('tls'),
+    fs = require('fs'),
     winston = require('winston'),
     timekeeper = require('timekeeper'),
     freezed_time = new Date(1330688329321);
@@ -24,10 +26,33 @@ describe('winston-logstash transport', function() {
     return server;
   }
 
-  function createLogger(port) {
+  function createTestSecureServer(port, options, on_data) {
+    var serverOptions = {
+      key: fs.readFileSync(__dirname + '/server.key'),
+      cert: fs.readFileSync(__dirname + '/server.pub'),
+      handshakeTimeout: 2000,
+      requestCert: options.verify ? options.verify : false,
+      ca: options.verify ? [ fs.readFileSync(__dirname + '/client.pub') ] : []
+    };
+    var server = tls.createServer(serverOptions, function(socket) {
+      socket.on('end', function () { });
+      socket.on('data', on_data);
+    });
+    server.listen(port, function() {});
+
+    return server
+  }
+
+  function createLogger(port, secure) {
     return new (winston.Logger)({
       transports: [
-        new (winston.transports.Logstash)( { port: port, node_name: 'test', localhost: 'localhost', pid: 12345 } )
+        new (winston.transports.Logstash)({
+          port: port, 
+          node_name: 'test', 
+          localhost: 'localhost', 
+          pid: 12345 , 
+          ssl_enable: secure ? true : false 
+        })
       ]
     });
   }
@@ -76,6 +101,52 @@ describe('winston-logstash transport', function() {
       test_server = null;
     });
 
+  });
+
+  describe('with secured logstash server', function() {
+    var test_server, port = 28777;
+
+    beforeEach(function(done) {
+      timekeeper.freeze(freezed_time);
+      done();
+    });
+
+    it('send logs over SSL secured TCP as valid json', function(done) {
+      var response;
+      var logger = createLogger(port, true);
+      var expected = {"stream":"sample","level":"info","message":"hello world"};
+
+      test_server = createTestSecureServer(port, {}, function (data) {
+        response = data.toString();
+        expect(JSON.parse(response)).to.be.eql(expected);
+        done();
+      });
+
+      logger.log('info', 'hello world', {stream: 'sample'});
+    });
+
+    it('send logs over SSL secured TCP as valid json with SSL verification', function(done) {
+      var response;
+      var logger = createLogger(port, true);
+      var expected = {"stream":"sample","level":"info","message":"hello world"};
+
+      test_server = createTestSecureServer(port, { verify: true }, function (data) {
+        response = data.toString();
+        expect(JSON.parse(response)).to.be.eql(expected);
+        done();
+      });
+
+      logger.log('info', 'hello world', {stream: 'sample'});
+    });
+
+    // Teardown
+    afterEach(function () {
+      if (test_server) {
+        test_server.close(function () {});
+      }
+      timekeeper.reset();
+      test_server = null;
+    });
   });
 
   describe('without logstash server', function () {
