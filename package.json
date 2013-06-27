@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -40,6 +40,13 @@
     {
       "name": "Jaakko Suutarla",
       "email": "jaakko@suutarla.com"
+    },
+    {
+      "name": "Chris Saylor",
+      "email": "cjsaylor@gmail.com"
+    },
+    {
+      "name": "gwhitelaw"
     }
   ],
   "maintainers": [
