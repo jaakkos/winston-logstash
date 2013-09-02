@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -15,10 +15,10 @@
     "url": "https://github.com/jaakkos/winston-logstash.git"
   },
   "dependencies": {
-    "winston": ">=0.6.2"
+    "winston": ">=0.7.2"
   },
   "devDependencies": {
-    "winston": ">=0.6.2",
+    "winston": ">=0.7.2",
     "mocha": ">=1.8.2",
     "chai": ">=1.5.0",
     "timekeeper": ">=0.0.3"
