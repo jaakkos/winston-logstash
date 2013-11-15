@@ -193,7 +193,15 @@ describe('winston-logstash transport', function() {
         expect(logger.transports.logstash.silent).to.be.true;
         done();
       });
+    });
 
+    it('emit an error message when it fallback to silent mode', function(done) {
+      logger.transports.logstash.on('error', function (err) {
+        if (/OFFLINE$/.test(err.message)) {
+          expect(logger.transports.logstash.retries).to.be.equal(4);
+          expect(logger.transports.logstash.silent).to.be.true;
+        }
+      });
     });
   });
 });
