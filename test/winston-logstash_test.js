@@ -47,10 +47,10 @@ describe('winston-logstash transport', function() {
     return new (winston.Logger)({
       transports: [
         new (winston.transports.Logstash)({
-          port: port, 
-          node_name: 'test', 
-          localhost: 'localhost', 
-          pid: 12345 , 
+          port: port,
+          node_name: 'test',
+          localhost: 'localhost',
+          pid: 12345 ,
           ssl_enable: secure ? true : false,
           ca: (secure && caFilePath) ? [__dirname + '/server.cert'] : undefined
         })
@@ -142,14 +142,15 @@ describe('winston-logstash transport', function() {
 
 
     it('logstash transport receive an error when there is a connection error different from ECONNREFUSED', function(done) {
-      var response;
-      var logger = createLogger(port, true, __dirname + '/server-fail.cert');
-      var expected = {"stream":"sample","level":"info","message":"hello world"};
+      var response,
+          logger = createLogger(port, true, __dirname + '/server-fail.cert'),
+          expected = {"stream":"sample","level":"info","message":"hello world"},
+          silence = true;
 
-      test_server = createTestSecureServer(port, { 
+      test_server = createTestSecureServer(port, {
         serverKey: __dirname + '/server-fail.key',
         serverCert: __dirname + '/server-fail.cert',
-        verify: true 
+        verify: true
       }, function (data) {
         response = data.toString();
         expect(JSON.parse(response)).to.be.eql(expected);
@@ -158,7 +159,10 @@ describe('winston-logstash transport', function() {
 
       logger.transports.logstash.on('error', function (err) {
         expect(err).to.be.an.instanceof(Error);
-        done();
+        if (silence) {
+          done();
+          silence = false;
+        }
       });
 
       logger.log('info', 'hello world', {stream: 'sample'});
@@ -171,37 +175,56 @@ describe('winston-logstash transport', function() {
       }
       timekeeper.reset();
       test_server = null;
+      logger = null;
     });
   });
 
   describe('without logstash server', function () {
+    var logger, interval;
+
     var checkSocketStatus = function (retries, logger, done) {
-      var interval = setInterval(function() {
+      interval = setInterval(function() {
         if (logger.transports.logstash.retries == retries) {
-          done();
           clearInterval(interval);
+          done();
         }
-      }, 250);
+      }, 500);
     };
 
     it('fallback to silent mode if logstash server is down', function(done) {
       var response;
       var logger = createLogger(28747);
-      logger.log('info', 'hello world', {stream: 'sample'});
 
       checkSocketStatus (4, logger, function() {
         expect(logger.transports.logstash.silent).to.be.true;
         done();
       });
+
+      logger.log('info', 'hello world', {stream: 'sample'});
     });
 
     it('emit an error message when it fallback to silent mode', function(done) {
+      var logger = createLogger(28747),
+          called = true;
+
       logger.transports.logstash.on('error', function (err) {
         if (/OFFLINE$/.test(err.message)) {
           expect(logger.transports.logstash.retries).to.be.equal(4);
           expect(logger.transports.logstash.silent).to.be.true;
+
+          if (called) {
+            done();
+          };
+
+          called = false;
         }
       });
+      // Wait for timeout for logger before sending first message
+      var interval = setInterval(function() {
+        logger.log('info', 'hello world', {stream: 'sample'});
+        clearInterval(interval);
+      }, 400);
+
     });
   });
 });
