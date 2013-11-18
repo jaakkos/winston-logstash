@@ -48,7 +48,7 @@ A [Logstash TCP][0] transport for [winston][1].
 ## TODO
 
 1. Support for different formats
-2. ???
+2. Clean up tests ( refactor )
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 

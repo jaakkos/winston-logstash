@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -47,6 +47,9 @@
     },
     {
       "name": "gwhitelaw"
+    },
+    {
+      "name": "Ivan Fraixedes"
     }
   ],
   "maintainers": [
