@@ -14,9 +14,6 @@
     "type": "git",
     "url": "https://github.com/jaakkos/winston-logstash.git"
   },
-  "dependencies": {
-    "winston": ">=0.7.2"
-  },
   "devDependencies": {
     "winston": ">=0.7.2",
     "mocha": ">=1.8.2",
