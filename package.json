@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/jaakkos/winston-logstash.git"
   },
-  "dependencies": {
+  "peerDependencies": {
     "winston": ">=0.7.2"
   },
   "devDependencies": {
