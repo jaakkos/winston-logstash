@@ -29,11 +29,18 @@ A [Logstash TCP][0] transport for [winston][1].
 ``` ruby
   input {
     # Sample input over TCP
-    tcp { format => "json" charset => "UTF-8" port => 28777 type=>"sample" }
+    tcp { port => 28777 type=>"sample" }
   }
   output {
-    stdout { debug => true debug_format => "json"}
+    stdout { debug => true }
   }
+
+  filter {
+    json {
+      source => "message"
+    }
+  }
+
 ```
 
 ## Inspiration
