@@ -93,6 +93,22 @@ describe('winston-logstash transport', function() {
       logger.log('info', 'hello world', {stream: 'sample'});
     });
 
+    it('send with different log levels', function(done) {
+
+      var response;
+      var logger = createLogger(port);
+
+      test_server = createTestServer(port, function (data) {
+        response = data.toString();
+        expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world"}\n{"stream":"sample","level":"error","message":"hello world"}\n');
+        done();
+      });
+
+      logger.log('info', 'hello world', {stream: 'sample'});
+      logger.log('error', 'hello world', {stream: 'sample'});
+
+    });
+
     // Teardown
     afterEach(function () {
       if (test_server) {
