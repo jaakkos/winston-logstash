@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -29,33 +29,21 @@
     "tools"
   ],
   "bugs": {
-    "url" : "https://github.com/jaakkos/winston-logstash/issues"
+    "url": "https://github.com/jaakkos/winston-logstash/issues"
   },
-  "author": {
-    "name": "Jaakko Suutarla",
-    "email": "jaakko@suutarla.com"
-  },
+  "author": "Jaakko Suutarla <jaakko@suutarla.com>",
   "license": "MIT",
   "contributors": [
-    {
-      "name": "Jaakko Suutarla",
-      "email": "jaakko@suutarla.com"
-    },
-    {
-      "name": "Chris Saylor",
-      "email": "cjsaylor@gmail.com"
-    },
-    {
-      "name": "gwhitelaw"
-    },
-    {
-      "name": "Ivan Fraixedes"
-    }
+    "Jaakko Suutarla <jaakko@suutarla.com>",
+    "Chris Saylor <cjsaylor@gmail.com>",
+    "gwhitelaw",
+    "Ivan Fraixedes"
   ],
   "maintainers": [
-    {
-      "name": "Jaakko Suutarla",
-      "email": "jaakko@suutarla.com"
-    }
-  ]
+    "Jaakko Suutarla <jaakko@suutarla.com>"
+  ],
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  }
 }
