@@ -15,13 +15,16 @@
     * Default: `false`
 * `ssl_key`
     * Path location of client private key.
-    * Only needed if SSL verify is required on logstash. 
+    * Only needed if SSL verify is required on logstash.
     * No default
 * `ssl_cert`
     * Path location of client public certificate.
-    * Only needed if SSL verify is required on logstash. 
+    * Only needed if SSL verify is required on logstash.
     * No default
 * `ssl_passphrase`
     * Passphrase for the SSL key.
-    * Only needed if the certificate has a passphrase. 
+    * Only needed if the certificate has a passphrase.
     * No default
+* `strip_colors`
+    * Strip colors from messages and metadata
+    * Default: `false`
