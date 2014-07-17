@@ -5,7 +5,7 @@
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
   "scripts": {
-    "test": "mocha test/*_test.js"
+    "test": "node_modules/mocha/bin/mocha test/*_test.js"
   },
   "engines": {
     "node": ">=0.8.x"

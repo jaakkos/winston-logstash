@@ -9,7 +9,7 @@ var chai = require('chai'),
     timekeeper = require('timekeeper'),
     freezed_time = new Date(1330688329321);
 
-chai.Assertion.includeStack = true;
+chai.config.includeStack = true;
 
 require('../lib/winston-logstash');
 
