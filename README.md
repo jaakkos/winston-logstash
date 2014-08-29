@@ -54,8 +54,11 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ## TODO
 
-1. Support for different formats
-2. Clean up tests ( refactor )
+1. Rethink logstash integration ( https://github.com/flatiron/winston/blob/master/lib/winston/common.js#L149 )
+2. Rewrite
+3. Release major after rewrite
+
+N. Clean up tests ( refactor )
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 
