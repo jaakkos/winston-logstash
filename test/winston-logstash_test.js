@@ -16,6 +16,20 @@ require('../lib/winston-logstash');
 describe('winston-logstash transport', function() {
   var test_server, port = 28777;
 
+  function mergeObject(source, target) {
+    var result = {};
+
+    for (var attrName in source) {
+      result[attrName] = source[attrName];
+    }
+
+    for (var attrName in target) {
+      result[attrName] = target[attrName];
+    }
+
+    return result;
+  }
+
   function createTestServer(port, on_data) {
     var server = net.createServer(port, function (socket) {
       socket.on('end', function () { });
@@ -28,11 +42,11 @@ describe('winston-logstash transport', function() {
 
   function createTestSecureServer(port, options, on_data) {
     var serverOptions = {
-      key: (options.serverKey) ? fs.readFileSync(options.serverKey) : fs.readFileSync(__dirname + '/server.key'),
-      cert: (options.serverCert) ? fs.readFileSync(options.serverCert) : fs.readFileSync(__dirname + '/server.cert'),
+      key: (options.serverKey) ? fs.readFileSync(options.serverKey) : fs.readFileSync(__dirname + '/support/ssl/server.key'),
+      cert: (options.serverCert) ? fs.readFileSync(options.serverCert) : fs.readFileSync(__dirname + '/support/ssl/server.cert'),
       handshakeTimeout: 2000,
       requestCert: options.verify ? options.verify : false,
-      ca: options.verify ? [ fs.readFileSync(__dirname + '/client.pub') ] : []
+      ca: options.verify ? [ fs.readFileSync(__dirname + '/support/ssl/client.pub') ] : []
     };
     var server = tls.createServer(serverOptions, function(socket) {
       socket.on('end', function () { });
@@ -43,17 +57,23 @@ describe('winston-logstash transport', function() {
     return server
   }
 
-  function createLogger(port, secure, caFilePath) {
+  function createLogger(port, secure, caFilePath, extraOptions) {
+    var transportsConfiguration = {
+      port: port,
+      node_name: 'test',
+      localhost: 'localhost',
+      pid: 12345 ,
+      ssl_enable: secure ? true : false,
+      ca: (secure && caFilePath) ? [__dirname + '/support/ssl/server.cert'] : undefined
+    };
+
+    if (extraOptions && typeof extraOptions === 'object') {
+      transportsConfiguration = mergeObject(transportsConfiguration, extraOptions);
+    }
+
     return new (winston.Logger)({
       transports: [
-        new (winston.transports.Logstash)({
-          port: port,
-          node_name: 'test',
-          localhost: 'localhost',
-          pid: 12345 ,
-          ssl_enable: secure ? true : false,
-          ca: (secure && caFilePath) ? [__dirname + '/server.cert'] : undefined
-        })
+        new (winston.transports.Logstash)(transportsConfiguration)
       ]
     });
   }
@@ -109,6 +129,19 @@ describe('winston-logstash transport', function() {
 
     });
 
+    it('send with overrided meta data', function(done) {
+      var response;
+      var logger = createLogger(port, false, '', { meta: { default_meta_override: 'foo' } });
+      test_server = createTestServer(port, function (data) {
+        response = data.toString();
+
+        expect(response).to.be.equal('{"default_meta_override":"foo","level":"info","message":"hello world"}\n');
+        done();
+      });
+
+      logger.log('info', 'hello world', { 'default_meta_override': 'tada' });
+    });
+
     // Teardown
     afterEach(function () {
       if (test_server) {
@@ -130,7 +163,7 @@ describe('winston-logstash transport', function() {
 
     it('send logs over SSL secured TCP as valid json', function(done) {
       var response;
-      var logger = createLogger(port, true, __dirname + '/server.cert');
+      var logger = createLogger(port, true, __dirname + '/support/ssl/server.cert');
       var expected = {"stream":"sample","level":"info","message":"hello world"};
 
       test_server = createTestSecureServer(port, {}, function (data) {
@@ -144,7 +177,7 @@ describe('winston-logstash transport', function() {
 
     it('send logs over SSL secured TCP as valid json with SSL verification', function(done) {
       var response;
-      var logger = createLogger(port, true, __dirname + '/server.cert');
+      var logger = createLogger(port, true, __dirname + '/support/ssl/server.cert');
       var expected = {"stream":"sample","level":"info","message":"hello world"};
 
       test_server = createTestSecureServer(port, { verify: true }, function (data) {
@@ -159,13 +192,13 @@ describe('winston-logstash transport', function() {
 
     it('logstash transport receive an error when there is a connection error different from ECONNREFUSED', function(done) {
       var response,
-          logger = createLogger(port, true, __dirname + '/server-fail.cert'),
+          logger = createLogger(port, true, __dirname + '/support/ssl/server-fail.cert'),
           expected = {"stream":"sample","level":"info","message":"hello world"},
           silence = true;
 
       test_server = createTestSecureServer(port, {
-        serverKey: __dirname + '/server-fail.key',
-        serverCert: __dirname + '/server-fail.cert',
+        serverKey: __dirname + '/support/ssl/server-fail.key',
+        serverCert: __dirname + '/support/ssl/server-fail.cert',
         verify: true
       }, function (data) {
         response = data.toString();
