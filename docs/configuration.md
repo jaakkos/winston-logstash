@@ -10,6 +10,9 @@
     * Max number of attempts to reconnect to logstash before going into silence.
     * `-1` means retry forever.
     * Default: `4`
+* `timeout_connect_retries`
+    * The number of ms between each retry for a reconnect to logstash .
+    * Default: `100`
 * `ssl_enable`
     * Enable SSL transfer of logs to logstash.
     * Default: `false`
