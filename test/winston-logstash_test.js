@@ -207,7 +207,10 @@ describe('winston-logstash transport', function() {
       }, function (data) {
         response = data.toString();
         expect(JSON.parse(response)).to.be.eql(expected);
-        done();
+        if (silence) {
+          done();
+          silence = false;
+        }
       });
 
       logger.transports.logstash.on('error', function (err) {
