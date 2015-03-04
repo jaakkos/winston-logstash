@@ -20,9 +20,19 @@ A [Logstash TCP][0] transport for [winston][1].
   winston.add(winston.transports.Logstash, {
     port: 28777,
     node_name: 'my node name',
-    host: '127.0.0.1'
+    host: '127.0.0.1',
+    retryInterval: 200
   });
 ```
+
+### More Options
+
+* **retryInterval** - (optional) Time (in ms) between re-connection attempts.  Default 100ms.
+* **fibonacci_backoff** - (optional) Re-connection attempts are backed off according to fibonacci pattern.  Each retry attempt happens after `fibonacci[n] * retryInterval` ms.
+* **flat_retry_threshold** - (optional) Once this many retry attempts have been made, Winston will only retry every `flat_retry_interval` ms.
+* **max_queue_length** - (optional) The max number of messages to have pending.  When disconnected from Logstash server, Winston will queue messages and try to send them later. 
+
+Read the code for more options.
 
 ### Logstash config
 
