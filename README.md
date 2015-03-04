@@ -27,6 +27,7 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ### More Options
 
+* **max_connect_retries** - (optional) The maximum number of retry attempts.  Default 4.  After max is reached, the logger will never re-connect to your Logstash server.
 * **retryInterval** - (optional) Time (in ms) between re-connection attempts.  Default 100ms.
 * **fibonacci_backoff** - (optional) Re-connection attempts are backed off according to fibonacci pattern.  Each retry attempt happens after `fibonacci[n] * retryInterval` ms.
 * **flat_retry_threshold** - (optional) Once this many retry attempts have been made, Winston will only retry every `flat_retry_interval` ms.
