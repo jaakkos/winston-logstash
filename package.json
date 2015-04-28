@@ -19,9 +19,9 @@
   },
   "devDependencies": {
     "winston": ">=0.7.3",
-    "mocha": ">=1.20.1",
-    "chai": ">=1.9.1",
-    "timekeeper": ">=0.0.4"
+    "mocha": ">=2.2.4",
+    "chai": ">=2.3.0",
+    "timekeeper": ">=0.0.5"
   },
   "keywords": [
     "logging",
@@ -37,7 +37,10 @@
     "Jaakko Suutarla <jaakko@suutarla.com>",
     "Chris Saylor <cjsaylor@gmail.com>",
     "gwhitelaw",
-    "Ivan Fraixedes"
+    "Ivan Fraixedes",
+    "kgoerlitz",
+    "Akta3d",
+    "KamalAman"
   ],
   "maintainers": [
     "Jaakko Suutarla <jaakko@suutarla.com>"
