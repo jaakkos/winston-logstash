@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/jaakkos/winston-logstash.png?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
 
+[![peerDependency Status](https://david-dm.org/jaakkos/winston-logstash/peer-status.svg)](https://david-dm.org/jaakkos/winston-logstash#info=peerDependencies)
+
 A [Logstash TCP][0] transport for [winston][1].
 
 ## Usage
