@@ -1,5 +1,7 @@
 # winston-logstash
 
+## Looking for maintainers - check issue [#37](https://github.com/jaakkos/winston-logstash/issues/37)
+
 [![Build Status](https://travis-ci.org/jaakkos/winston-logstash.png?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
 
 [![peerDependency Status](https://david-dm.org/jaakkos/winston-logstash/peer-status.svg)](https://david-dm.org/jaakkos/winston-logstash#info=peerDependencies)
