@@ -6,6 +6,11 @@
 * `port`
     * The host port to connect.
     * Default: `28777`
+* `hosts`
+    * A list of logstash hosts. This list is cycled until a successful connection is made.
+    * If not specified, `host` and `port` are used instead.
+    * Example: `127.0.0.1:28777,127.0.0.1:28778`
+    * No default. The port part of a host can be specified with the `port` option or defaults to 28777.
 * `max_connect_retries`
     * Max number of attempts to reconnect to logstash before going into silence.
     * `-1` means retry forever.
