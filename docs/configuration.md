@@ -34,3 +34,6 @@
 * `strip_colors`
     * Strip colors from messages and metadata
     * Default: `false`
+* `timestamp`
+    * Add @timestamp field to output message
+    * Default: `false`
