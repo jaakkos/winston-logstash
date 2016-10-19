@@ -33,7 +33,7 @@ describe('winston-logstash transport', function() {
   function createTestServer(port, on_data) {
     var server = net.createServer(function (socket) {
       socket.on('end', function () { });
-      socket.once('data', on_data);
+      socket.on('data', on_data);
     });
     server.listen(port, function() {});
 
@@ -50,7 +50,7 @@ describe('winston-logstash transport', function() {
     };
     var server = tls.createServer(serverOptions, function(socket) {
       socket.on('end', function () { });
-      socket.once('data', on_data);
+      socket.on('data', on_data);
     });
     server.listen(port, function() {});
 
