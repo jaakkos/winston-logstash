@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "0.2.11",
+  "version": "0.3.0",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -18,10 +18,10 @@
     "winston": ">=0.7.3"
   },
   "devDependencies": {
-    "winston": ">=0.7.3",
-    "mocha": ">=2.2.4",
     "chai": ">=2.3.0",
-    "timekeeper": ">=0.0.5"
+    "mocha": ">=2.2.4",
+    "timekeeper": ">=0.0.5",
+    "winston": ">=0.7.3"
   },
   "keywords": [
     "logging",
@@ -36,6 +36,7 @@
   "contributors": [
     "Jaakko Suutarla <jaakko@suutarla.com>",
     "Chris Saylor <cjsaylor@gmail.com>",
+    "djmax",
     "gwhitelaw",
     "Ivan Fraixedes",
     "kgoerlitz",

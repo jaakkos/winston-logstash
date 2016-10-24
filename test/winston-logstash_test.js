@@ -31,7 +31,7 @@ describe('winston-logstash transport', function() {
   }
 
   function createTestServer(port, on_data) {
-    var server = net.createServer(port, function (socket) {
+    var server = net.createServer(function (socket) {
       socket.on('end', function () { });
       socket.on('data', on_data);
     });
@@ -143,16 +143,18 @@ describe('winston-logstash transport', function() {
     });
 
     // Teardown
-    afterEach(function () {
+    afterEach(function (done) {
       if (logger) {
         logger.close();
       }
-      if (test_server) {
-        test_server.close(function () {});
-      }
       timekeeper.reset();
-      test_server = null;
-      logger = null;
+      if (test_server) {
+        test_server.close(function () {
+          test_server = null;
+          logger = null;
+          done();
+        });
+      }
     });
 
   });
@@ -225,16 +227,18 @@ describe('winston-logstash transport', function() {
     });
 
     // Teardown
-    afterEach(function () {
+    afterEach(function (done) {
       if (logger) {
         logger.close();
       }
-      if (test_server) {
-        test_server.close(function () {});
-      }
       timekeeper.reset();
-      test_server = null;
-      logger = null;
+      if (test_server) {
+        test_server.close(function () {
+          test_server = null;
+          logger = null;
+          done();
+        });
+      }
     });
   });
 
