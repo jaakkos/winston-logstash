@@ -49,5 +49,8 @@
   "directories": {
     "doc": "docs",
     "test": "test"
+  },
+  "dependencies": {
+    "cycle": "^1.0.3"
   }
 }
