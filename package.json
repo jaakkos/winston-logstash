@@ -1,6 +1,6 @@
 {
-  "name": "winston-logstash",
-  "version": "0.3.0",
+  "name": "winston-logstash-cubyn",
+  "version": "0.3.1",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
@@ -49,5 +49,8 @@
   "directories": {
     "doc": "docs",
     "test": "test"
+  },
+  "dependencies": {
+    "cycle": "^1.0.3"
   }
 }
