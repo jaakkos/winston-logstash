@@ -1,3 +1,10 @@
+## 0.4.0 (2017-11-24)
+
+Features:
+
+  - https://github.com/jaakkos/winston-logstash/pull/48
+  - https://github.com/jaakkos/winston-logstash/pull/46
+
 ## 0.2.11 (2015-04-28)
 
 Features:
