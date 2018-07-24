@@ -1,3 +1,3 @@
---ui exports
+--require babel-core/register
 --reporter spec
---timeout 30000
+--timeout 5000

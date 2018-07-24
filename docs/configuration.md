@@ -29,8 +29,7 @@
     * Only needed if the certificate has a passphrase.
     * No default
 * `rejectUnauthorized`
-    * If true the server will reject any connection which is not authorized with the list of supplied CAs. 
+    * If true the server will reject any connection which is not authorized with the list of supplied CAs.
     * Default true
 * `strip_colors`
-    * Strip colors from messages and metadata
-    * Default: `false`
+    * Deprecated since winston 3.x. Please use an `uncolorize` formatter.

@@ -3,6 +3,7 @@
 lib-cov
 .DS_Store
 .DS_Store?
+.history
 ._*
 .Spotlight-V100
 .Trashes

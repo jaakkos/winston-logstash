@@ -1,27 +1,13 @@
 {
-  "name": "winston-logstash",
-  "version": "0.4.0",
+  "name": "@homair/winston-logstash",
+  "version": "3.0.0",
   "description": "A Logstash transport for winston",
-  "main": "./lib/winston-logstash",
+  "main": "./dist/winston-logstash",
   "homepage": "https://github.com/jaakkos/winston-logstash",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test/*_test.js"
-  },
-  "engines": {
-    "node": ">=4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jaakkos/winston-logstash.git"
-  },
-  "peerDependencies": {
-    "winston": ">=0.7.3"
-  },
-  "devDependencies": {
-    "chai": ">=2.3.0",
-    "mocha": ">=2.2.4",
-    "timekeeper": ">=0.0.5",
-    "winston": ">=0.7.3"
+    "build": "babel -d dist/ lib/",
+    "dev": "npm run build -- --watch",
+    "test": "NODE_ENV=test mocha test/*_test.js"
   },
   "keywords": [
     "logging",
@@ -41,11 +27,52 @@
     "Ivan Fraixedes",
     "kgoerlitz",
     "Akta3d",
-    "KamalAman"
+    "KamalAman",
+    "cutesquirrel <cutesquirrel.dev@gmail.com>"
   ],
   "maintainers": [
     "Jaakko Suutarla <jaakko@suutarla.com>"
   ],
+  "engines": {
+    "node": ">=6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaakkos/winston-logstash.git"
+  },
+  "babel": {
+    "presets": [
+      "env",
+      "stage-2"
+    ],
+    "plugins": [
+      "transform-class-properties"
+    ]
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it"
+    ],
+    "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "winston-transport": "^4.2.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^8.2.5",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "chai": ">=4.1.2",
+    "mocha": ">=5.2.0",
+    "timekeeper": ">=2.1.2",
+    "winston": ">=3.0.0"
+  },
+  "peerDependencies": {
+    "winston": ">=0.7.3"
+  },
   "directories": {
     "doc": "docs",
     "test": "test"
