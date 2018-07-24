@@ -1,5 +1,5 @@
 {
-  "name": "winston-logstash",
+  "name": "@homair/winston-logstash",
   "version": "3.0.0",
   "description": "A Logstash transport for winston",
   "main": "./dist/winston-logstash",
