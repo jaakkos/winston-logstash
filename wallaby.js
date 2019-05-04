@@ -12,7 +12,8 @@ module.exports = function (wallaby) {
         ],
         env: {
             type: 'node',
-            runner: 'node'
+            runner: 'node',
+            NODE_TLS_REJECT_UNAUTHORIZED: 0
         },
         setup: function (w) {
             var mocha = w.testFramework;

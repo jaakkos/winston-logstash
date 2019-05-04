@@ -12,7 +12,7 @@ import * as Transport from 'winston-transport';
 import {LogstashTransportConfig} from './LogstashTransportConfig';
 import {LogMessage} from './LogMessage';
 import * as winston from 'winston';
-
+const DEFAULT_CONNECTION_RETRY = 3 * 1000;
 const {format} = winston;
 const {uncolorize} = format;
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
@@ -67,8 +67,9 @@ export default class LogstashWinstonTransport extends Transport {
         // this.node_name = options.node_name || process.title;
         // this.pid = options.pid || process.pid;
         this.maxConnectRetries = ('number' === typeof options.max_connect_retries) ? options.max_connect_retries :4;
+
         this.timeoutConnectRetries = ('number' === typeof options.timeout_connect_retries) ?
-                options.timeout_connect_retries :100;
+                options.timeout_connect_retries : DEFAULT_CONNECTION_RETRY;
         this.retries = -1;
 
         // Support for winston build in logstash format
@@ -114,15 +115,19 @@ export default class LogstashWinstonTransport extends Transport {
             options = {
                 ca: this.ca ? this._readCa() : null,
                 cert: this.sslCert ? fs.readFileSync(this.sslCert) :null,
+                host: this.host,
                 key: this.sslKey ? fs.readFileSync(this.sslKey) :null,
+                minVersion: 'TLSv1.2',
                 passphrase: this.sslPassphrase ? this.sslPassphrase :null,
-                rejectUnauthorized: this.rejectUnauthorized === true
+                port: this.port,
+                rejectUnauthorized: this.rejectUnauthorized === true,
+                servername: this.host
             };
-            this.socket = tls.connect(this.port, this.host, options, () => {
-                this.socket!.setEncoding('UTF-8');
+            this.socket = tls.connect(options, () => {
                 this._announce();
                 this.connecting = false;
             });
+            this.socket!.setEncoding('UTF-8');
         } else {
             this.socket = new net.Socket();
         }
@@ -151,6 +156,9 @@ export default class LogstashWinstonTransport extends Transport {
 
         this.socket.on('connect', () => {
             this.retries = 0;
+        });
+        this.socket.on('data', (_data) => {
+            return;
         });
 
         this.socket.on('close', () => {
@@ -266,7 +274,8 @@ export default class LogstashWinstonTransport extends Transport {
     }
 
     private _readCa() {
-        return this.ca!.map((filePath: string) => fs.readFileSync(filePath));
+        const buffers = this.ca!.map((filePath: string) => fs.readFileSync(filePath));
+        return buffers;
         //
         // (caList) => {
         //     const caFilesList: any[] = [];
