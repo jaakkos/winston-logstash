@@ -1,8 +1,12 @@
 sudo: false
 language: node_js
 node_js:
-  - "7"
-  - "6"
-  - "5"
-  - "4"
+  - "11"
+  - "10"
+  - "9"
+  - "8"
 env: NODE_TLS_REJECT_UNAUTHORIZED=0
+deploy:
+  provider: npm
+  email: "dan@kuida"
+  api_key: $NPM_API_KEY

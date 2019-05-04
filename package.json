@@ -1,27 +1,33 @@
 {
-  "name": "winston-logstash",
-  "version": "0.4.0",
+  "name": "dkuida-winston-logstash",
+  "version": "0.4.1",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
-  "homepage": "https://github.com/jaakkos/winston-logstash",
+  "homepage": "https://github.com/dkuida/winston-logstash",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test/*_test.js"
+    "test": "mocha test/*_test.js",
+    "deploy": "npm version patch -m \"Release v%s\" && npm publish",
+    "preversion": "npm run test",
+    "postversion": "git push && git push --follow-tags"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=8"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jaakkos/winston-logstash.git"
+    "url": "git+https://github.com/dkuida/winston-logstash.git"
   },
   "peerDependencies": {
-    "winston": ">=0.7.3"
+    "winston": ">=3.0.0"
+  },
+  "dependencies": {
+    "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
-    "chai": ">=2.3.0",
-    "mocha": ">=2.2.4",
-    "timekeeper": ">=0.0.5",
-    "winston": ">=0.7.3"
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "timekeeper": "^2.2.0",
+    "winston": "^3.2.1"
   },
   "keywords": [
     "logging",
@@ -29,7 +35,7 @@
     "tools"
   ],
   "bugs": {
-    "url": "https://github.com/jaakkos/winston-logstash/issues"
+    "url": "https://github.com/dkuida/winston-logstash/issues"
   },
   "author": "Jaakko Suutarla <jaakko@suutarla.com>",
   "license": "MIT",
