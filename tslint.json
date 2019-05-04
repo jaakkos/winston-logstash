@@ -4,7 +4,7 @@
   ],
   "rules": {
 
-    "whitespace": [true, "check-typecast", "check-operator", "check-type-operator", "check-separator"],
+    "whitespace": [true, "check-typecast", "check-operator", "check-type-operator", "check-decl"],
     "quotemark": [true, "single", "jsx-single"],
     "indent": true,
     "interface-name": false,

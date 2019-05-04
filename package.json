@@ -28,6 +28,7 @@
     "url": "git+https://github.com/dkuida/winston-logstash.git"
   },
   "peerDependencies": {
+    "winston": ">=3.0.0",
     "winston-transport": "^4.3.0"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "@types/node": "^8.10.48",
     "@typescript-eslint/parser": "^1.7.0",
     "chai": "^4.2.0",
+    "eslint": "^5.16.0",
     "mocha": "^6.1.4",
     "pre-commit": "^1.2.2",
     "timekeeper": "^2.2.0",
