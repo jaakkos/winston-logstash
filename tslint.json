@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "tslint-eslint-rules", "tslint:latest"
+  ],
+  "rules": {
+
+    "whitespace": [true, "check-typecast"],
+    "quotemark": [true, "single", "jsx-single"],
+    "indent": true,
+    "interface-name": false,
+    "variable-name": [true, "allow-leading-underscore"],
+    "one-line": false,
+    "trailing-comma": [false],
+    "ordered-imports": false,
+    "no-angle-bracket-type-assertion": false,
+    "no-implicit-dependencies": [true, "dev"]
+  }
+}
+

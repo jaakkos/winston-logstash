@@ -6,7 +6,8 @@ module.exports = function (wallaby) {
             'test/mocha.opts',
         ],
         tests: [
-            'test/**/*_test.js?(x)'
+            'test/**/*_test.js?(x)',
+            'test/**/*_test.ts?(x)'
 
         ],
         env: {
@@ -17,6 +18,11 @@ module.exports = function (wallaby) {
             var mocha = w.testFramework;
             mocha.timeout(30000);
             mocha.reporter('spec');
+        },
+        compilers: {
+            '**/*.ts?(x)': wallaby.compilers.typeScript({
+                module: 'commonjs'
+            })
         },
         testFramework: 'mocha'
     };
