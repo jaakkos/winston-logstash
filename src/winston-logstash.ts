@@ -4,43 +4,79 @@
  * MIT LICENCE
  *
  */
-const stringifySafe = require('json-stringify-safe');
-var net = require('net'),
-    util = require('util'),
-    os = require('os'),
-    tls = require('tls'),
-    fs = require('fs'),
-    winston = require('winston'),
-    Transport = require('winston-transport');
+import * as stringifySafe from 'json-stringify-safe';
+import * as net from 'net';
+import {Socket} from 'net';
+// import * as os from 'os';
+import * as tls from 'tls';
+import {TLSSocket} from 'tls';
+import * as fs from 'fs';
+import * as Transport from 'winston-transport';
+import {LogstashTransportConfig} from './LogstashTransportConfig';
+import {LogMessage} from './LogMessage';
 
-var ECONNREFUSED_REGEXP = /ECONNREFUSED/;
+const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
+const SOCKET_KEEP_ALIVE = 60 * 1000;
 
+export class LogstashWinstonTransport extends Transport {
+    private max_connect_retries: number;
+    // private node_name: string;
+    // private name: string;
+    // private localhost: string;
+    private timeout_connect_retries: number;
+    private meta_defaults: any;
+    private host: string;
+    private port: number;
+    // private pid: number;
+    private retries: number;
+    // private logstash: boolean;
+    private rejectUnauthorized?: boolean;
+    private ssl_enable: boolean;
+    private ssl_key: string;
+    private ssl_cert: string;
+    private ca?: string[];
+    private ssl_passphrase: string;
+    private log_queue: any[];
+    private connected: boolean;
+    private socket: Socket | TLSSocket | null;
+    private strip_colors: boolean;
+    // private label: string;
+    private connecting: boolean;
+    private terminating: boolean;
+    private tryReconnect: boolean;
 
-class LogstashWinstonTransport extends Transport {
+    private static safeToString(json: any) {
+        try {
+            return JSON.stringify(json);
+        } catch (ex) {
+            return stringifySafe(json, null, null, () => {
+            });
+        }
+    }
 
-    constructor (options) {
+    constructor(options: LogstashTransportConfig) {
         super(options);
         options = options || {};
 
-        this.name = 'logstash';
-        this.localhost = options.localhost || os.hostname();
+        // this.name = 'logstash';
+        // this.localhost = options.localhost || os.hostname();
         this.host = options.host || '127.0.0.1';
         this.port = options.port || 28777;
-        this.node_name = options.node_name || process.title;
-        this.pid = options.pid || process.pid;
-        this.max_connect_retries = ('number' === typeof options.max_connect_retries) ? options.max_connect_retries : 4;
-        this.timeout_connect_retries = ('number' === typeof options.timeout_connect_retries) ? options.timeout_connect_retries : 100;
+        // this.node_name = options.node_name || process.title;
+        // this.pid = options.pid || process.pid;
+        this.max_connect_retries = ('number' === typeof options.max_connect_retries) ? options.max_connect_retries:4;
+        this.timeout_connect_retries = ('number' === typeof options.timeout_connect_retries) ? options.timeout_connect_retries:100;
         this.retries = -1;
 
         // Support for winston build in logstash format
         // https://github.com/flatiron/winston/blob/master/lib/winston/common.js#L149
-        this.logstash = options.logstash || false;
+        // this.logstash = options.logstash || false;
 
         // SSL Settings
         this.ssl_enable = options.ssl_enable || false;
         this.ssl_key = options.ssl_key || '';
         this.ssl_cert = options.ssl_cert || '';
-        this.ca = options.ca || '';
+        this.ca = options.ca || undefined;
         this.ssl_passphrase = options.ssl_passphrase || '';
         this.rejectUnauthorized = options.rejectUnauthorized === true;
 
@@ -51,12 +87,11 @@ class LogstashWinstonTransport extends Transport {
 
         // Miscellaneous options
         this.strip_colors = options.strip_colors || false;
-        this.label = options.label || this.node_name;
+        // this.label = options.label || this.node_name;
         this.meta_defaults = options.meta || {};
-        this.transform = options.transform || this._commonLog;
 
         // We want to avoid copy-by-reference for meta defaults, so make sure it's a flat object.
-        for (var property in this.meta_defaults) {
+        for (const property in this.meta_defaults) {
             if (typeof this.meta_defaults[property] === 'object') {
                 delete this.meta_defaults[property];
             }
@@ -66,31 +101,23 @@ class LogstashWinstonTransport extends Transport {
 
     }
 
-    connect () {
-        var tryReconnect = true;
-        var options = {};
+    public connect() {
+        this.tryReconnect = true;
+        let options = {};
         this.retries++;
         this.connecting = true;
         this.terminating = false;
         if (this.ssl_enable) {
             options = {
-                key: this.ssl_key ? fs.readFileSync(this.ssl_key) : null,
-                cert: this.ssl_cert ? fs.readFileSync(this.ssl_cert) : null,
-                passphrase: this.ssl_passphrase ? this.ssl_passphrase : null,
+                key: this.ssl_key ? fs.readFileSync(this.ssl_key):null,
+                cert: this.ssl_cert ? fs.readFileSync(this.ssl_cert):null,
+                passphrase: this.ssl_passphrase ? this.ssl_passphrase:null,
                 rejectUnauthorized: this.rejectUnauthorized === true,
-                ca: this.ca ? (function (caList) {
-                    var caFilesList = [];
-
-                    caList.forEach(function (filePath) {
-                        caFilesList.push(fs.readFileSync(filePath));
-                    });
-
-                    return caFilesList;
-                }(this.ca)) : null
+                ca: this.ca ? this._readCa():null
             };
-            this.socket = new tls.connect(this.port, this.host, options, () => {
-                this.socket.setEncoding('UTF-8');
-                this.announce();
+            this.socket = tls.connect(this.port, this.host, options, () => {
+                this.socket!.setEncoding('UTF-8');
+                this._announce();
                 this.connecting = false;
             });
         } else {
@@ -108,14 +135,14 @@ class LogstashWinstonTransport extends Transport {
             this.socket = null;
 
             if (!ECONNREFUSED_REGEXP.test(err.message)) {
-                tryReconnect = false;
+                this.tryReconnect = false;
                 this.emit('error', err);
             }
         });
 
         this.socket.on('timeout', () => {
-            if (this.socket.readyState !== 'open') {
-                this.socket.destroy();
+            if ((<any> this.socket).readyState !== 'open') {
+                this.socket!.destroy();
             }
         });
 
@@ -123,11 +150,15 @@ class LogstashWinstonTransport extends Transport {
             this.retries = 0;
         });
 
-        this.socket.on('close', (had_error) => {
+        this.socket.on('close', () => {
             this.connected = false;
 
             if (this.terminating) {
                 return;
+            }
+
+            if (!this.tryReconnect) {
+                // todo do not reconnect probably same as max connect retries
             }
 
             if (this.max_connect_retries < 0 || this.retries < this.max_connect_retries) {
@@ -145,15 +176,28 @@ class LogstashWinstonTransport extends Transport {
 
         if (!this.ssl_enable) {
             this.socket.connect(this.port, this.host, () => {
-                this.announce();
+                this._announce();
                 this.connecting = false;
-                this.socket.setKeepAlive(true, 60 * 1000);
+
+                this.socket!.setKeepAlive(true, SOCKET_KEEP_ALIVE);
             });
         }
 
     }
 
-    close () {
+    private _readCa() {
+        return this.ca!.map((filePath: string) => fs.readFileSync(filePath));
+        //
+        // (caList) => {
+        //     const caFilesList: any[] = [];
+        //
+        //     this.ca.forEach();
+        //
+        //     return caFilesList;
+        // };
+    }
+
+    public close() {
         this.terminating = true;
         if (this.connected && this.socket) {
             this.connected = false;
@@ -163,7 +207,7 @@ class LogstashWinstonTransport extends Transport {
         }
     }
 
-    announce () {
+    private _announce() {
         this.connected = true;
         this.finish();
         if (this.terminating) {
@@ -171,19 +215,19 @@ class LogstashWinstonTransport extends Transport {
         }
     }
 
-    sendLog (message, callback) {
-        callback = callback || function () {
+    public sendLog(message: string, callback: () => void) {
+        callback = callback || function() {
         };
 
-        this.socket.write(message + '\n');
+        this.socket!.write(message + '\n');
         callback();
     }
 
-    getQueueLength () {
+    public getQueueLength() {
         return this.log_queue.length;
     }
 
-    finish () {
+    public finish() {
 
         for (let i = 0; i < this.log_queue.length; i++) {
             this.sendLog(this.log_queue[i].message, this.log_queue[i].callback);
@@ -191,16 +235,15 @@ class LogstashWinstonTransport extends Transport {
         this.log_queue.length = 0;
     }
 
-    log (info, callback) {
+    public log(info: LogMessage, callback: (err: any, success: boolean) => void) {
         setImmediate(() => {
             this.emit('logged', info);
         });
         let {level, message, ...messageMeta} = info;
 
-        let meta = {...messageMeta, ...this.meta_defaults};
+        const meta = {...messageMeta, ...this.meta_defaults};
 
-
-        for (let property in this.meta_defaults) {
+        for (const property in this.meta_defaults) {
             meta[property] = this.meta_defaults[property];
         }
 
@@ -209,17 +252,17 @@ class LogstashWinstonTransport extends Transport {
         }
 
         if (this.strip_colors) {
-            message = message.stripColors;
+            // message = message.stripColors;
 
             // Let's get rid of colors on our meta properties too.
             if (typeof meta === 'object') {
-                for (let property in meta) {
+                for (const property in meta) {
                     meta[property] = meta[property].stripColors;
                 }
             }
         }
 
-        const log_entry = LogstashWinstonTransport.safeToString({...info, ...meta});//this.transform(level, message, meta);
+        const log_entry = LogstashWinstonTransport.safeToString({...info, ...meta});// this.transform(level, message, meta);
 
         if (!this.connected) {
             this.log_queue.push({
@@ -237,26 +280,6 @@ class LogstashWinstonTransport extends Transport {
         }
     }
 
-    static safeToString (json) {
-        try {
-            return JSON.stringify(json);
-        } catch (ex) {
-            return stringifySafe(json, null, null, () => {
-            });
-        }
-    }
-
-    _commonLog (level, message, meta) {
-        return {
-            level: level,
-            message: message,
-            node_name: this.node_name,
-            meta: meta,
-            timestamp: this.timestamp,
-            json: true,
-            label: this.label
-        }
-    };
 }
 
 module.exports = LogstashWinstonTransport;

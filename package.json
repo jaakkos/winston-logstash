@@ -2,10 +2,10 @@
   "name": "@dkuida/winston-logstash",
   "version": "0.4.1",
   "description": "A Logstash transport for winston",
-  "main": "./lib/winston-logstash",
+  "main": "src/lib/winston-logstash",
   "homepage": "https://github.com/dkuida/winston-logstash",
   "scripts": {
-    "test": "mocha test/*_test.js",
+    "test": "mocha --require ts-node/register test/*_test.ts",
     "build": "npm run clean && npm run tsc && npm run copy-types",
     "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "lint": "tslint -p tsconfig.json",
@@ -28,26 +28,26 @@
     "url": "git+https://github.com/dkuida/winston-logstash.git"
   },
   "peerDependencies": {
-    "winston": ">=3.0.0"
+    "winston-transport": "^4.3.0"
   },
   "dependencies": {
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/json-stringify-safe": "^5.0.0",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^8.10.48",
+    "@typescript-eslint/parser": "^1.7.0",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
-    "timekeeper": "^2.2.0",
-    "winston": "^3.2.1",
     "pre-commit": "^1.2.2",
-    "@types/node": "^8.10.48",
-
-
+    "timekeeper": "^2.2.0",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
-    "typescript": "^3.4.5",
     "tslint-eslint-rules": "^5.4.0",
-    "@typescript-eslint/parser": "^1.7.0"
-
+    "typescript": "^3.4.5",
+    "winston": ">=3.0.0"
   },
   "keywords": [
     "logging",
