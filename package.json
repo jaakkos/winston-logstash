@@ -6,6 +6,7 @@
   "homepage": "https://github.com/dkuida/winston-logstash",
   "scripts": {
     "test": "mocha test/*_test.js",
+    "deploy": "npm version patch -m \"Release v%s\" && npm publish",
     "preversion": "npm run test",
     "postversion": "git push && git push --follow-tags"
   },
