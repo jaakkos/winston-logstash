@@ -1,10 +1,15 @@
 # winston-logstash
 
-[![Build Status](https://travis-ci.org/jaakkos/winston-logstash.png?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
+[![Build Status](https://travis-ci.org/dkuida/winston-logstash.svg?branch=master)](https://travis-ci.org/dkuida/winston-logstash)
 
-[![Dependency Status](https://gemnasium.com/badges/github.com/jaakkos/winston-logstash.svg)](https://gemnasium.com/github.com/jaakkos/winston-logstash)
+[![Known Vulnerabilities](https://snyk.io/test/github/dkuida/logger-wrapper/badge.svg?targetFile=package.json)](https://snyk.io/test/github/dkuida/logger-wrapper?targetFile=package.json)
 
 A [Logstash TCP][0] transport for [winston][1].
+### Based on the great work by @jaakkos https://github.com/jaakkos/winston-logstash
+
+I decide to clone and deploy separately - since the code styles and nodejs version support that 
+I have are very different from those of the original authors. But I will be more than happy if this 
+fork will be merged back into the original project
 
 ## Usage
 

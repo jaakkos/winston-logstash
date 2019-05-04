@@ -21,8 +21,8 @@
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
-    "chai": "^2.3.0",
-    "mocha": "^2.2.4",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
     "timekeeper": "^2.2.0",
     "winston": "^3.2.1"
   },
