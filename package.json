@@ -17,6 +17,9 @@
   "peerDependencies": {
     "winston": ">=3.0.0"
   },
+  "dependencies": {
+    "json-stringify-safe": "^5.0.1"
+  },
   "devDependencies": {
     "chai": "^2.3.0",
     "mocha": "^2.2.4",

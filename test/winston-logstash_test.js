@@ -10,11 +10,10 @@ var chai = require('chai'),
     freezed_time = new Date(1330688329321);
 
 chai.config.includeStack = true;
-const {
-  createLogger,
-  format,
-} = winston;
+
 const LogstashTransport = require('../lib/winston-logstash');
+const {createLogger, transports, format} = winston;
+const {combine, timestamp, label, prettyPrint, errors, json, colorize} = format;
 
 describe('winston-logstash transport', function() {
   var test_server, port = 28777;
@@ -75,10 +74,16 @@ describe('winston-logstash transport', function() {
     }
     const logstashTransport = new LogstashTransport(transportsConfiguration);
     const logger = createLogger({
-      transports: [logstashTransport]
+      transports: [logstashTransport],
+      format: combine(
+          label({label: "test"}),
+          errors({ stack: true }),
+          prettyPrint(),
+          json()
+      ),
     });
 
-    return logger;
+    return {logger, logstashTransport};
 
   }
 
@@ -93,8 +98,8 @@ describe('winston-logstash transport', function() {
     it('send logs over TCP as valid json', function(done) {
       var response;
       var expected = {"stream":"sample","level":"info","message":"hello world","label":"test"};
-      logger = createLogstashLogger(port);
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port);
+      logger = instance;
       test_server = createTestServer(port, function (data) {
         response = data.toString();
         expect(JSON.parse(response)).to.be.eql(expected);
@@ -106,8 +111,8 @@ describe('winston-logstash transport', function() {
 
     it('send each log with a new line character', function(done) {
       var response;
-      logger = createLogstashLogger(port);
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port);
+      logger = instance;
       test_server = createTestServer(port, function (data) {
         response = data.toString();
         expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world","label":"test"}\n');
@@ -120,8 +125,8 @@ describe('winston-logstash transport', function() {
     it('send with different log levels', function(done) {
 
       var response;
-      logger = createLogstashLogger(port);
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port);
+      logger = instance;
       test_server = createTestServer(port, function (data) {
         response = data.toString();
         expect(response).to.be.equal('{"stream":"sample","level":"info","message":"hello world","label":"test"}\n{"stream":"sample","level":"error","message":"hello world","label":"test"}\n');
@@ -135,7 +140,8 @@ describe('winston-logstash transport', function() {
 
     it('send with overrided meta data', function(done) {
       var response;
-      logger = createLogstashLogger(port, false, '', { meta: { default_meta_override: 'foo' } });
+      var {logger: instance, logstashTransport} = createLogstashLogger(port, false, '', { meta: { default_meta_override: 'foo' } });
+      logger = instance;
       test_server = createTestServer(port, function (data) {
         response = data.toString();
 
@@ -174,8 +180,8 @@ describe('winston-logstash transport', function() {
     it('send logs over SSL secured TCP as valid json', function(done) {
       var response;
       var expected = {"stream":"sample","level":"info","message":"hello world","label":"test"};
-      logger = createLogstashLogger(port, true, __dirname + '/support/ssl/server.cert');
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port, true, __dirname + '/support/ssl/server.cert');
+      logger = instance;
       test_server = createTestSecureServer(port, {}, function (data) {
         response = data.toString();
         expect(JSON.parse(response)).to.be.eql(expected);
@@ -188,8 +194,8 @@ describe('winston-logstash transport', function() {
     xit('send logs over SSL secured TCP as valid json with SSL verification', function(done) {
       var response;
       var expected = {"stream":"sample","level":"info","message":"hello world","label":"test"};
-      logger = createLogstashLogger(port, true, __dirname + '/support/ssl/server.cert');
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port, true, __dirname + '/support/ssl/server.cert');
+      logger = instance;
       test_server = createTestSecureServer(port, { verify: true }, function (data) {
         response = data.toString();
         expect(JSON.parse(response)).to.be.eql(expected);
@@ -204,8 +210,8 @@ describe('winston-logstash transport', function() {
       var response,
           expected = {"stream":"sample","level":"info","message":"hello world","label":"test"},
           silence = true;
-      logger = createLogstashLogger(port, true, __dirname + '/support/ssl/server-fail.cert'),
-
+      var {logger: instance, logstashTransport} = createLogstashLogger(port, true, __dirname + '/support/ssl/server-fail.cert'),
+          logger = instance;
       test_server = createTestSecureServer(port, {
         serverKey: __dirname + '/support/ssl/server-fail.key',
         serverCert: __dirname + '/support/ssl/server-fail.cert',
@@ -219,7 +225,7 @@ describe('winston-logstash transport', function() {
         }
       });
 
-      logger.transports.logstash.on('error', function (err) {
+      logger.on('error', function (err) {
         expect(err).to.be.an.instanceof(Error);
         if (silence) {
           done();
@@ -251,10 +257,10 @@ describe('winston-logstash transport', function() {
 
     it('fallback to silent mode if logstash server is down', function(done) {
       var response;
-      var logger = createLogstashLogger(28747);
-
-      logger.transports.logstash.on('error', function (err) {
-        expect(logger.transports.logstash.silent).to.be.true;
+      var {logger: instance, logstashTransport} = createLogstashLogger(28747);
+      logger = instance;
+      logger.on('error', function (err) {
+        expect(logstashTransport.silent).to.be.true;
         done();
       });
 
@@ -262,17 +268,17 @@ describe('winston-logstash transport', function() {
     });
 
     it('emit an error message when it fallback to silent mode', function(done) {
-      var logger = createLogstashLogger(28747),
+      var {logger: instance, logstashTransport} = createLogstashLogger(28747),
           called = true;
-
-      logger.transports.logstash.on('error', function (err) {
+      logger = instance;
+      logger.on('error', function (err) {
         if (/OFFLINE$/.test(err.message)) {
-          expect(logger.transports.logstash.retries).to.be.equal(4);
-          expect(logger.transports.logstash.silent).to.be.true;
+          expect(logstashTransport.retries).to.be.equal(4);
+          expect(logstashTransport.silent).to.be.true;
 
           if (called) {
             done();
-          };
+          }
 
           called = false;
         }
