@@ -12,7 +12,7 @@
     * Default: `4`
 * `timeout_connect_retries`
     * The number of ms between each retry for a reconnect to logstash .
-    * Default: `100`
+    * Default: `3 Seconds`
 * `ssl_enable`
     * Enable SSL transfer of logs to logstash.
     * Default: `false`
