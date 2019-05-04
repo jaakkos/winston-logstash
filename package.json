@@ -3,16 +3,18 @@
   "version": "0.4.0",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
-  "homepage": "https://github.com/jaakkos/winston-logstash",
+  "homepage": "https://github.com/dkuida/winston-logstash",
   "scripts": {
-    "test": "mocha test/*_test.js"
+    "test": "mocha test/*_test.js",
+    "preversion": "npm run test",
+    "postversion": "git push && git push --follow-tags"
   },
   "engines": {
     "node": ">=8"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jaakkos/winston-logstash.git"
+    "url": "https://github.com/dkuida/winston-logstash.git"
   },
   "peerDependencies": {
     "winston": ">=3.0.0"
@@ -32,7 +34,7 @@
     "tools"
   ],
   "bugs": {
-    "url": "https://github.com/jaakkos/winston-logstash/issues"
+    "url": "https://github.com/dkuida/winston-logstash/issues"
   },
   "author": "Jaakko Suutarla <jaakko@suutarla.com>",
   "license": "MIT",
