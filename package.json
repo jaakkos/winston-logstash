@@ -1,5 +1,5 @@
 {
-  "name": "dkuida-winston-logstash",
+  "name": "@dkuida/winston-logstash",
   "version": "0.4.1",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
@@ -12,6 +12,9 @@
   },
   "engines": {
     "node": ">=8"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "repository": {
     "type": "git",
