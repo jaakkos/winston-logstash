@@ -1,0 +1,7 @@
+.idea
+test
+src
+.drone.yml
+wallaby.js
+!dist/**
+**/coverage/**/*

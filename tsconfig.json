@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "lib": [ "es2017", "es2015", "dom" ],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true
+
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "__mocks__/**/*",
+    "**/__mocks__/*"
+  ]
+}
