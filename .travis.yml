@@ -1,8 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-  - "7"
-  - "6"
-  - "5"
-  - "4"
+  - "12"
+  - "10"
+  - "8"
 env: NODE_TLS_REJECT_UNAUTHORIZED=0
