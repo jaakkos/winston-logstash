@@ -1,8 +1,8 @@
 # winston-logstash
 
-[![Build Status](https://travis-ci.org/dkuida/winston-logstash.svg?branch=master)](https://travis-ci.org/dkuida/winston-logstash)
+[![Build Status](https://travis-ci.org/jaakkos/winston-logstash.svg?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
 
-[![Known Vulnerabilities](https://snyk.io/test/github/dkuida/logger-wrapper/badge.svg?targetFile=package.json)](https://snyk.io/test/github/dkuida/logger-wrapper?targetFile=package.json)
+[![Known Vulnerabilities](https://snyk.io/test/github/jaakkos/logger-wrapper/badge.svg?targetFile=package.json)](https://snyk.io/test/github/jaakkos/logger-wrapper?targetFile=package.json)
 
 A [Logstash TCP][0] transport for [winston][1].
 ### Based on the great work by @jaakkos https://github.com/jaakkos/winston-logstash
