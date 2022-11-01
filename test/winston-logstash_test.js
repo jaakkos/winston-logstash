@@ -7,15 +7,14 @@ var chai = require('chai'),
     fs = require('fs'),
     winston = require('winston'),
     timekeeper = require('timekeeper'),
-    freezed_time = new Date(1330688329321);
+    freezed_time = new Date(1330688329321)
+    port = 28777;
 
 chai.config.includeStack = true;
 
 require('../lib/winston-logstash');
 
 describe('winston-logstash transport', function() {
-  var test_server, port = 28777;
-
   function mergeObject(source, target) {
     var result = {};
 
@@ -44,10 +43,11 @@ describe('winston-logstash transport', function() {
     var serverOptions = {
       key: (options.serverKey) ? fs.readFileSync(options.serverKey) : fs.readFileSync(__dirname + '/support/ssl/server.key'),
       cert: (options.serverCert) ? fs.readFileSync(options.serverCert) : fs.readFileSync(__dirname + '/support/ssl/server.cert'),
-      handshakeTimeout: 2000,
+      handshakeTimeout: 1000,
       requestCert: options.verify ? options.verify : false,
-      ca: options.verify ? [ fs.readFileSync(__dirname + '/support/ssl/client.pub') ] : []
+      ca: [ fs.readFileSync(__dirname + '/support/ssl/ca.cert') ]
     };
+
     var server = tls.createServer(serverOptions, function(socket) {
       socket.on('end', function () { });
       socket.on('data', on_data);
@@ -64,7 +64,9 @@ describe('winston-logstash transport', function() {
       localhost: 'localhost',
       pid: 12345 ,
       ssl_enable: secure ? true : false,
-      ca: (secure && caFilePath) ? [__dirname + '/support/ssl/server.cert'] : undefined
+      ca: (secure && caFilePath) ? [__dirname + '/support/ssl/ca.cert'] : undefined,
+      ssl_key: secure ? __dirname + '/support/ssl/client.key' : undefined,
+      ssl_cert: secure ? __dirname + '/support/ssl/client.cert' : undefined
     };
 
     if (extraOptions && typeof extraOptions === 'object') {
@@ -79,9 +81,10 @@ describe('winston-logstash transport', function() {
   }
 
   describe('with logstash server', function () {
-    var test_server, logger, port = 28777;
+    var test_server, logger;
 
     beforeEach(function(done) {
+      port++;
       timekeeper.freeze(freezed_time);
       done();
     });
@@ -160,9 +163,10 @@ describe('winston-logstash transport', function() {
   });
 
   describe('with secured logstash server', function() {
-    var test_server, logger, port = 28777;
+    var test_server, logger;
 
     beforeEach(function(done) {
+      port++;
       timekeeper.freeze(freezed_time);
       done();
     });
@@ -184,7 +188,7 @@ describe('winston-logstash transport', function() {
     it('send logs over SSL secured TCP as valid json with SSL verification', function(done) {
       var response;
       var expected = {"stream":"sample","level":"info","message":"hello world","label":"test"};
-      logger = createLogger(port, true, __dirname + '/support/ssl/server.cert');
+      logger = createLogger(port, true, __dirname + '/support/ssl/client.cert');
 
       test_server = createTestSecureServer(port, { verify: true }, function (data) {
         response = data.toString();
