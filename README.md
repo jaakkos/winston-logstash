@@ -6,6 +6,10 @@
 
 A [Logstash TCP][0] transport for [winston][1].
 
+## OBS
+
+Due changes to Winston version >= 1.0.0 supports winston < 3.x. Updated version with Winston 3.x support will be released soon.
+
 ## Usage
 
 ### Node
@@ -51,7 +55,7 @@ A [Logstash TCP][0] transport for [winston][1].
 ## Run Tests
 
 ```
-  NODE_TLS_REJECT_UNAUTHORIZED=0 npm test
+  npm test
 ```
 
 ## TODO
