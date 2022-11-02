@@ -1,8 +1,6 @@
 # winston-logstash
 
-[![Build Status](https://travis-ci.org/jaakkos/winston-logstash.png?branch=master)](https://travis-ci.org/jaakkos/winston-logstash)
-
-[![Dependency Status](https://gemnasium.com/badges/github.com/jaakkos/winston-logstash.svg)](https://gemnasium.com/github.com/jaakkos/winston-logstash)
+[![Build Status](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml/badge.svg)](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml)
 
 A [Logstash TCP][0] transport for [winston][1].
 
