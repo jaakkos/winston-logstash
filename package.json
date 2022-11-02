@@ -18,9 +18,9 @@
     "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 "
   },
   "devDependencies": {
-    "chai": ">=2.3.0",
-    "mocha": ">=2.2.4",
-    "timekeeper": ">=0.0.5",
+    "chai": "4.3.6",
+    "mocha": "10.1.0",
+    "timekeeper": "2.2.0",
     "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 "
   },
   "keywords": [
