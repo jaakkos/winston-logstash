@@ -28,3 +28,5 @@ npm-debug.log
 test/runner.js
 
 test/support/logstash/*
+
+test-bench/logstash/logstash/output/*
