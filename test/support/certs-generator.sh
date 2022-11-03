@@ -25,6 +25,7 @@ openssl x509 -req -CAcreateserial -in `pwd`/test/support/ssl/server.csr \
   -CA `pwd`/test/support/ssl/ca.cert \
   -CAkey `pwd`/test/support/ssl/ca.key \
   -days 3650 \
+  -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1") \
   -out `pwd`/test/support/ssl/server.cert
 
 echo "Generating certificate signing request for client"
