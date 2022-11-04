@@ -17,28 +17,13 @@ chai.config.includeStack = true;
 require('../lib/winston-logstash');
 
 describe('winston-logstash transport', function() {
-  function mergeObject(source, target) {
-    const result = {};
-
-    // eslint-disable-next-line guard-for-in
-    for (attrName in source) {
-      result[attrName] = source[attrName];
-    }
-
-    // eslint-disable-next-line guard-for-in
-    for (attrName in target) {
-      result[attrName] = target[attrName];
-    }
-
-    return result;
-  }
-
   function createTestServer(port, onData) {
     const server = net.createServer(function(socket) {
-      socket.on('end', function() { });
+      socket.on('end', function() {});
       socket.on('data', onData);
     });
-    server.listen(port, function() { });
+
+    server.listen(port);
 
     return server;
   }
@@ -84,10 +69,9 @@ describe('winston-logstash transport', function() {
       ssl_cert: secure ? __dirname + '/support/ssl/client.cert' : undefined,
     };
 
-    if (extraOptions && typeof extraOptions === 'object') {
-      transportsConfiguration = mergeObject(transportsConfiguration,
-          extraOptions);
-    }
+
+    transportsConfiguration = Object.assign({},
+        extraOptions, transportsConfiguration);
 
     return new (winston.Logger)({
       transports: [
@@ -97,7 +81,8 @@ describe('winston-logstash transport', function() {
   }
 
   describe('with logstash server', function() {
-    let testServer; let logger;
+    let testServer;
+    let logger;
 
     beforeEach(function(done) {
       port++;
@@ -111,7 +96,6 @@ describe('winston-logstash transport', function() {
         'level': 'info',
         'message': 'hello world',
         'label': 'test'};
-      logger = createLogger(port);
 
       testServer = createTestServer(port, function(data) {
         response = data.toString();
@@ -119,12 +103,12 @@ describe('winston-logstash transport', function() {
         done();
       });
 
+      logger = createLogger(port);
       logger.log('info', 'hello world', {stream: 'sample'});
     });
 
     it('send each log with a new line character', function(done) {
       let response;
-      logger = createLogger(port);
 
       testServer = createTestServer(port, function(data) {
         response = data.toString();
@@ -133,12 +117,12 @@ describe('winston-logstash transport', function() {
         done();
       });
 
+      logger = createLogger(port);
       logger.log('info', 'hello world', {stream: 'sample'});
     });
 
     it('send with different log levels', function(done) {
       let response;
-      logger = createLogger(port);
 
       testServer = createTestServer(port, function(data) {
         response = data.toString();
@@ -147,6 +131,7 @@ describe('winston-logstash transport', function() {
         done();
       });
 
+      logger = createLogger(port);
       logger.log('info', 'hello world', {stream: 'sample'});
       logger.log('error', 'hello world', {stream: 'sample'});
     });
@@ -174,7 +159,7 @@ describe('winston-logstash transport', function() {
       }
       timekeeper.reset();
       if (testServer) {
-        testServer.close(function() {
+        testServer.close(() => {
           testServer = null;
           logger = null;
           done();
@@ -308,7 +293,6 @@ describe('winston-logstash transport', function() {
       });
       // Wait for timeout for logger before sending first message
       const interval = setInterval(function() {
-        logger.log('info', 'hello world', {stream: 'sample'});
         clearInterval(interval);
       }, 400);
     });
