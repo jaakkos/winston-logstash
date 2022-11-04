@@ -1,0 +1,2 @@
+- pipeline.id: default
+  path.config: "/usr/share/logstash/pipeline/default.conf"

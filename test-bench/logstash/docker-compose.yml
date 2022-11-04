@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  logstash:
+    image: logstash:8.5.0
+    volumes:
+      - type: bind
+        source: ./logstash/config/logstash.yml
+        target: /usr/share/logstash/config/logstash.yml
+        read_only: true
+      - type: bind
+        source: ./logstash/pipeline
+        target: /usr/share/logstash/pipeline
+        read_only: true
+      - type: bind
+        source: ../../test/support/ssl
+        target: /usr/share/logstash/ssl
+        read_only: true
+      - type: bind
+        source: ./logstash/output
+        target: /usr/share/logstash/output
+        read_only: false
+    ports:
+      - "9888:9888/tcp"
+      - "9777:9777/tcp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"

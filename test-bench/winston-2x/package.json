@@ -1,0 +1,17 @@
+{
+  "name": "winston-2x",
+  "version": "1.0.0",
+  "description": "for testing Winston 2.x",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chai": "4.3.6",
+    "mocha": "10.1.0",
+    "winston": "2.4.3",
+    "winston-logstash": "file:../../."
+  }
+}
