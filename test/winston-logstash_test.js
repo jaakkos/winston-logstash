@@ -9,7 +9,6 @@ const fs = require('fs');
 const winston = require('winston');
 const timekeeper = require('timekeeper');
 const freezedTime = new Date(1330688329321);
-const secureServerDebug = require('debug')('test:server:secure');
 let port = 28777;
 
 chai.config.includeStack = true;
@@ -44,15 +43,11 @@ describe('winston-logstash transport', function() {
     };
 
     const server = tls.createServer(serverOptions, function(socket) {
-      secureServerDebug('server connected',
-        socket.authorized ? 'authorized' : 'unauthorized');
       socket.on('end', function() { });
       socket.on('data', onData);
     });
 
-    server.listen(port, 'localhost', function() {
-      secureServerDebug('server started to port', port);
-    });
+    server.listen(port, 'localhost');
 
     return server;
   }
