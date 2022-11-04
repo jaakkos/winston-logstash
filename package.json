@@ -16,7 +16,7 @@
     "url": "https://github.com/jaakkos/winston-logstash.git"
   },
   "peerDependencies": {
-    "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 "
+    "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 || ^3.0.0"
   },
   "devDependencies": {
     "chai": "4.3.6",
@@ -52,5 +52,8 @@
   "directories": {
     "doc": "docs",
     "test": "test"
+  },
+  "dependencies": {
+    "winston-transport": "4.5.0"
   }
 }
