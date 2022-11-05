@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.0.0 (2022-11-02) - Not released yet
+## 1.0.0 (2022-11-02)
 
 Features:
 
-- release 1.x branch for for supporting Winston ^2.x
+- Add support for winston 3.x
 
 Bugfixes:
 
