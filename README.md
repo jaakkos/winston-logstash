@@ -23,7 +23,7 @@ A [Logstash TCP][0] transport for [winston][1].
     log.info("Hello world!");
 ```
 
-### Winston 2.x
+### Winston 3.x
 
 ``` js
   // See test cases from test-bench/winston-3x/test/smoke.js
