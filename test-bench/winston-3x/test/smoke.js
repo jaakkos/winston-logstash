@@ -4,7 +4,8 @@
 // `winston.transports.Logstash`
 //
 const winston = require('winston');
-const LogstashTransport = require('winston-logstash/lib/winston-logstash-latest');
+const LogstashTransport =
+  require('winston-logstash/lib/winston-logstash-latest');
 const chai = require('chai');
 const expect = chai.expect;
 const fs = require('fs');

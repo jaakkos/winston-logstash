@@ -4,33 +4,46 @@
 
 A [Logstash TCP][0] transport for [winston][1].
 
-## OBS
-
-Due changes to Winston version >= 1.0.0 supports winston < 3.x. Updated version with Winston 3.x support will be released soon.
-
 ## Usage
 
-### Node
+### Winston 2.x
 
 ``` js
-  var winston = require('winston');
+  // See test cases from test-bench/winston-2x/test/smoke.js
+  const winston = require('winston');
+  const transports = require('winston-logstash');
 
-  //
-  // Requiring `winston-logstash` will expose
-  // `winston.transports.Logstash`
-  //
-  require('winston-logstash');
+    const logger = new (winston.Logger)({
+      transports: [
+        new transports.Logstash({
+              port: 28777,
+              node_name: 'my node name',
+              host: '127.0.0.1'})]});
 
-  winston.add(winston.transports.Logstash, {
-    port: 28777,
-    node_name: 'my node name',
-    host: '127.0.0.1'
-  });
+    log.info("Hello world!");
+```
+
+### Winston 2.x
+
+``` js
+  // See test cases from test-bench/winston-3x/test/smoke.js
+  const winston = require('winston');
+  const LogstashTransport = require('winston-logstash/lib/winston-logstash-latest');
+
+    const logger = winston.createLogger({
+      transports: [
+        new LogstashTransport({
+              port: 28777,
+              node_name: 'my node name',
+              host: '127.0.0.1'})]});
+
+    log.info("Hello world!");
 ```
 
 ### Logstash config
 
 ``` ruby
+  # See example from test-bench/logstash/logstash/pipeline/default.conf
   input {
     # Sample input over TCP
     tcp { port => 28777 type=>"sample" }
@@ -55,14 +68,6 @@ Due changes to Winston version >= 1.0.0 supports winston < 3.x. Updated version 
 ```
   npm test
 ```
-
-## TODO
-
-1. Rethink logstash integration ( https://github.com/flatiron/winston/blob/master/lib/winston/common.js#L149 )
-2. Rewrite
-3. Release major after rewrite
-
-N. Clean up tests ( refactor )
 
 #### Author: [Jaakko Suutarla](https://github.com/jaakkos)
 
