@@ -62,6 +62,10 @@ A [Logstash TCP][0] transport for [winston][1].
 
 ## FAQ
 
+### What configuration options are available?
+
+See documentation from [docs/configuration](docs/configuration.md)
+
 ### How to keep the connection open while Logstash is restarting?
 
 It's possible to set max_connect_retries to -1 (infinite) so the client keeps trying to connect to the Logstash. So when Logstash is restarted the retry logic will reconnect when it comes back online.
