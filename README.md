@@ -83,15 +83,15 @@ It's possible to set max_connect_retries to -1 (infinite) so the client keeps tr
 ## Run Tests
 
 ```shell
-  $ npm test
+  npm test
 ```
 
 ## Run integration tests with Logstash
 
 ```shell
-  $ cd test-bench/winston-3x
-  $ docker-compose up -d
-  $ npm test
+  cd test-bench/winston-3x
+  docker-compose up -d
+  npm test
 ```
 
 ## Inspiration
