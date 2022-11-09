@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.2 (2022-11-09)
+
+Features:
+
+- Update README.md
+
+Bugfixes:
+
+- Fix retry timeout which was removed on 1.x release.
+
 ## 1.0.0 (2022-11-02)
 
 Features:

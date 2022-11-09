@@ -9,17 +9,33 @@ const fs = require('fs');
 const winston = require('winston');
 const timekeeper = require('timekeeper');
 const freezedTime = new Date(1330688329321);
-let port = 28777;
+const port = 28777;
 
 chai.config.includeStack = true;
 
 require('../lib/winston-logstash');
 
 describe('winston-logstash transport', function() {
+  const openSockets = new Set();
+
+  const forceCloseAllSocket = () => {
+    const openSocketsCount = openSockets.size;
+    for (const socket of openSockets.values()) {
+      socket.destroy();
+    }
+
+    return openSocketsCount;
+  };
+
   function createTestServer(port, onData) {
     const server = net.createServer(function(socket) {
-      socket.on('end', function() {});
-      socket.on('data', onData);
+      openSockets.add(socket);
+      socket.on('close', () => {
+        openSockets.delete(socket);
+      });
+      socket.on('data', (data) => {
+        onData(data);
+      });
     });
 
     server.listen(port);
@@ -42,9 +58,14 @@ describe('winston-logstash transport', function() {
       ca: [fs.readFileSync(__dirname + '/support/ssl/ca.cert')],
     };
 
-    const server = tls.createServer(serverOptions, function(socket) {
-      socket.on('end', function() { });
-      socket.on('data', onData);
+    const server = tls.createServer(serverOptions, (socket) => {
+      openSockets.add(socket);
+      socket.on('end', () => {
+        openSockets.delete(socket);
+      });
+      socket.on('data', (data) => {
+        onData(data);
+      });
     });
 
     server.listen(port, 'localhost');
@@ -75,15 +96,28 @@ describe('winston-logstash transport', function() {
     });
   }
 
+  function setup(done, port, timekeeper) {
+    port++;
+    timekeeper.freeze(freezedTime);
+    done();
+  }
+
+  function tearDown(done, logger, timekeeper, testServer) {
+    logger.close();
+    forceCloseAllSocket();
+    timekeeper.reset();
+    testServer.close(() => {
+      testServer = null;
+      logger = null;
+      done();
+    });
+  }
+
   describe('with logstash server', function() {
     let testServer;
     let logger;
 
-    beforeEach(function(done) {
-      port++;
-      timekeeper.freeze(freezedTime);
-      done();
-    });
+    beforeEach((done) => setup(done, port, timekeeper));
 
     it('send logs over TCP as valid json', function(done) {
       let response;
@@ -148,29 +182,15 @@ describe('winston-logstash transport', function() {
     });
 
     // Teardown
-    afterEach(function(done) {
-      if (logger) {
-        logger.close();
-      }
-      timekeeper.reset();
-      if (testServer) {
-        testServer.close(() => {
-          testServer = null;
-          logger = null;
-          done();
-        });
-      }
+    afterEach((done) => {
+      tearDown(done, logger, timekeeper, testServer);
     });
   });
 
   describe('with secured logstash server', function() {
     let testServer; let logger;
 
-    beforeEach(function(done) {
-      port++;
-      timekeeper.freeze(freezedTime);
-      done();
-    });
+    beforeEach((done) => setup(done, port, timekeeper));
 
     it('send logs over SSL secured TCP as valid json', function(done) {
       let response;
@@ -244,18 +264,8 @@ describe('winston-logstash transport', function() {
     });
 
     // Teardown
-    afterEach(function(done) {
-      if (logger) {
-        logger.close();
-      }
-      timekeeper.reset();
-      if (testServer) {
-        testServer.close(function() {
-          testServer = null;
-          logger = null;
-          done();
-        });
-      }
+    afterEach((done) => {
+      tearDown(done, logger, timekeeper, testServer);
     });
   });
 
