@@ -6,6 +6,7 @@
 const winston = require('winston');
 const LogstashTransport =
   require('winston-logstash/lib/winston-logstash-latest');
+
 const chai = require('chai');
 const expect = chai.expect;
 const fs = require('fs');
@@ -42,7 +43,7 @@ describe('Ensure logstash is working', () => {
           node_name: 'my node name',
           host: 'localhost',
           ssl_enable: true,
-          ca: [__dirname + '/../../../test/support/ssl/ca.cert'],
+          ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
           ssl_cert: __dirname + '/../../../test/support/ssl/client.cert',
         }),
@@ -71,7 +72,7 @@ describe('Ensure logstash is working', () => {
           node_name: 'my node name',
           host: 'localhost',
           ssl_enable: false,
-          ca: [__dirname + '/../../../test/support/ssl/ca.cert'],
+          ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
           ssl_cert: __dirname + '/../../../test/support/ssl/client.cert',
         }),

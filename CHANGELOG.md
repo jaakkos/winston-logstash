@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2022-11-16)
+
+Features:
+
+- Migrete to TypeScript
+
 ## 1.0.2 (2022-11-09)
 
 Features:

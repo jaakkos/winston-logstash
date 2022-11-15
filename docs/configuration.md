@@ -31,6 +31,3 @@
 * `rejectUnauthorized`
   * If true the server will reject any connection which is not authorized with the list of supplied CAs.
   * Default true
-* `strip_colors`
-  * Strip colors from messages and metadata
-  * Default: `false`
