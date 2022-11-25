@@ -1,3 +1,10 @@
+/*
+ *
+ * (C) 2022 Jaakko Suutarla
+ * MIT LICENCE
+ *
+ */
+
 import Transport from "winston-transport";
 import { Manager } from './manager';
 import { LogstashTransportOptions } from "./types";
@@ -30,9 +37,7 @@ module.exports = class LogstashTransport extends Transport {
     });
 
     // Perform the writing to the remote service
-    this.manager.log(JSON.stringify(info), () => {
-      callback();
-    });
+    this.manager.log(JSON.stringify(info), callback);
   }
 
   close() {

@@ -6,16 +6,4 @@
     "strict": true,
     "target": "ES5",
  }
-  // "compilerOptions": {
-  //     "outDir": "./lib/",
-  //     "sourceMap": true,
-  //     "target": "ES5",
-  //     "module": "CommonJS",
-  //     "lib": ["ES2015"],
-  //     "types": ["node"],
-  //     "esModuleInterop": true,
-  //     "moduleResolution": "node",
-  //     "baseUrl": "types",
-  //     "typeRoots": ["types"],
-  // }
 }

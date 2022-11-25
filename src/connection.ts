@@ -1,3 +1,10 @@
+/*
+ *
+ * (C) 2022 Jaakko Suutarla
+ * MIT LICENCE
+ *
+ */
+
 import {Socket} from 'net'
 import {readFileSync} from 'fs'
 import tls from 'tls';
@@ -5,12 +12,6 @@ import { WinstonModuleTransportOptions } from 'winston';
 import { Manager } from './manager';
 import { LogstashTransportSSLOptions } from './types';
 
-/**
- * Represents a connection to Logstash.
- * @constructor
- * @param {object} options
- * @param {object} manager
- */
 export class Connection {
   protected socket: Socket | undefined;
   protected host: string;

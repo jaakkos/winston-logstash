@@ -1,3 +1,10 @@
+/*
+ *
+ * (C) 2022 Jaakko Suutarla
+ * MIT LICENCE
+ *
+ */
+
 import { GenericTextTransportOptions, GenericTransportOptions } from "winston";
 
 export type LogEntry = [String, Function];

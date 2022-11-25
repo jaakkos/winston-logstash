@@ -1,6 +1,13 @@
+/*
+ *
+ * (C) 2022 Jaakko Suutarla
+ * MIT LICENCE
+ *
+ */
+
 import {Connection, SecureConnection, PlainConnection} from './connection'
 import { EventEmitter } from 'events';
-import { LogstashTransportOptions } from './types';
+import { LogstashTransportOptions, LogEntry } from './types';
 
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 
@@ -129,9 +136,12 @@ export class Manager extends EventEmitter {
     while (this.connection &&
             this.connection.readyToSend() &&
             this.logQueue.length) {
-      const [entry, callback]: any = this.logQueue.shift();
-      this.connection.send(entry + '\n');
-      callback();
+      const logEntry = this.logQueue.shift();
+      if (logEntry) {
+        const [entry, callback] = logEntry;
+        this.connection.send(entry + '\n');
+        callback();
+      }
     }
   }
 };
