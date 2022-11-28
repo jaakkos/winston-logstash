@@ -31,9 +31,9 @@ jobs:
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
         run: npm install
       - name: Wait for Logstash
-        uses: ifaxity/wait-on-action
-        with:
-          resource: tcp:localhost:9777
+        run: |
+          npm install -g wait-on &&
+          ./node_modules/.bin/wait-on tcp:9777
       - run: npm test
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
       - name: Stop containers
