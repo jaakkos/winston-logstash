@@ -11,7 +11,7 @@
     "build": "babel src --out-dir lib --extensions '.ts'"
   },
   "files": [
-    "dist/"
+    "lib/"
   ],
   "engines": {
     "node": ">=6"

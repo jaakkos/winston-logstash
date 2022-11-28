@@ -18,14 +18,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Start containers for Winston ${{ matrix.winston-version }
+      - name: Start containers for Winston ${{ matrix.winston-version }}
         working-directory: ./test-bench/logstash/
-        run: docker-compose -f "docker-compose.yml" up -d --build
+        run: docker-compose -f "docker-compose.yml" up -d
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install dependencies
+      - run: npm install
+      - run: npm run build
+      - name: Install dependencies for test case
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
         run: npm install
       - run: npm test
