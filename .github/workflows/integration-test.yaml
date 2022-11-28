@@ -33,7 +33,7 @@ jobs:
       - name: Wait for Logstash
         run: |
           npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9777 &&
-          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9888 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9888
       - run: npm test
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
       - name: Stop containers
