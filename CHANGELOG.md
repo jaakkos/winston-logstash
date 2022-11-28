@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.1.0 (2022-11-16)
+## Not released yet
+
+## 1.1.0-rc1 (2022-11-28)
 
 Features:
 
