@@ -29,4 +29,5 @@ test/runner.js
 
 test/support/logstash/*
 
-test-bench/logstash/logstash/output/*
+!test-bench/logstash/logstash/output/.gitkeep
+test-bench/logstash/logstash/output/sample.log
