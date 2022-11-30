@@ -22,7 +22,8 @@ jobs:
         working-directory: ./test-bench/logstash/
         run: |
           mkdir -p logstash/output &&
-          docker-compose -f "docker-compose.yml" up -d --build
+          touch logstash/output/sample.log &&
+          docker-compose -f "docker-compose.yml" up -d
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
