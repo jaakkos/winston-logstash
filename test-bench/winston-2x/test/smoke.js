@@ -36,6 +36,7 @@ describe('Ensure logstash is working', () => {
     const logger = new (winston.Logger)({
       transports: [
         new transports.Logstash({
+          max_connect_retries: 500,
           port: 9888,
           node_name: 'my node name',
           host: '0.0.0.0',
@@ -65,6 +66,7 @@ describe('Ensure logstash is working', () => {
     const logger = new (winston.Logger)({
       transports: [
         new transports.Logstash({
+          max_connect_retries: 500,
           port: 9777,
           node_name: 'my node name',
           host: '0.0.0.0',
