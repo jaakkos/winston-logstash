@@ -40,8 +40,7 @@ jobs:
           npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9777 &&
           npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9888 &&
           docker-compose logs --no-color logstash &&
-          npx --yes wait-on --timeout 3000 --verbose file:logstash/output/sample.log &&
-          cat logstash/output/sample.log
+          npx --yes wait-on --timeout 30000 --verbose file:logstash/output/sample.log
       - run: npm test
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
       - name: Stop containers
@@ -50,5 +49,4 @@ jobs:
         run: |
          docker-compose logs --no-color logstash &&
          ls -alg logstash/output &&
-         cat logstash/output/sample.log &&
          docker-compose -f "docker-compose.yml" down
