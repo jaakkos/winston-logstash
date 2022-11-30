@@ -41,7 +41,7 @@ describe('Ensure logstash is working', () => {
         new LogstashTransport({
           port: 9888,
           node_name: 'my node name',
-          host: 'localhost',
+          host: '0.0.0.0',
           ssl_enable: true,
           ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
@@ -70,7 +70,7 @@ describe('Ensure logstash is working', () => {
         new LogstashTransport({
           port: 9777,
           node_name: 'my node name',
-          host: 'localhost',
+          host: '0.0.0.0',
           ssl_enable: false,
           ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
