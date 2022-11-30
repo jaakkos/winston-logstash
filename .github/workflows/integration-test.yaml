@@ -42,8 +42,7 @@ jobs:
           docker-compose logs --no-color logstash &&
           netstat -l &&
           nmap localhost &&
-          lsof -i tcp &&
-          npx --yes wait-on --timeout 30000 --verbose file:logstash/output/sample.log
+          lsof -i tcp
       - run: npm test
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
       - name: Stop containers
