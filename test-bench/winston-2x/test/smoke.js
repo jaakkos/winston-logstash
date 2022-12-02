@@ -7,24 +7,32 @@ const winston = require('winston');
 const transports = require('winston-logstash');
 const chai = require('chai');
 const expect = chai.expect;
-const fs = require('fs');
-const readLines = (file) => fs.readFileSync(file, 'utf-8').toString();
+const net = require('net');
 
-const logstashOutputFile = '../logstash/logstash/output/sample.log';
-const clearOutputFile = (done) => fs.writeFile(logstashOutputFile, '', done);
-const logFileAsObject = () => {
-  const logFileContent = readLines(logstashOutputFile);
-  let logFileContentAsObject = {message: '', level: ''};
-  try {
-    logFileContentAsObject = JSON.parse(logFileContent);
-  } catch (e) {
+const assertClient = (port) => {
+  const client = new net.Socket();
 
-  }
-  return logFileContentAsObject;
-};
-const waitUntilLogfileFlush = (done) => {
-  // Logstash file flush is set to 1 sec
-  setTimeout(done, 1100);
+  return new Promise((resolve, rejects) => {
+    client.connect(port, 'localhost', function() {
+      // console.log('Connected');
+      // client.write('Hello, server! Love, Client.');
+    });
+
+    client.on('data', function(data) {
+      resolve(JSON.parse(data));
+      // console.log('Received: ' + data);
+      client.destroy(); // kill client after server's response
+    });
+
+    client.on('close', function() {
+      // console.log('Connection closed');
+    });
+
+    client.on('error', (error) => {
+      rejects(error);
+      client.destroy();
+    });
+  });
 };
 
 const buildLogger = (ssl) => new (winston.Logger)({
@@ -43,21 +51,16 @@ const buildLogger = (ssl) => new (winston.Logger)({
 });
 
 describe('Ensure logstash is working', () => {
-  beforeEach('clear file', (done) => {
-    clearOutputFile(done);
-  });
-
   it('should append for lines to file with secure logger', (done) => {
+    const valueForAssertion = assertClient(9999);
     const logger = buildLogger(true);
 
     const expectMessage = 'secure logger: ' + Date.now();
     logger.log('info', expectMessage);
 
-    waitUntilLogfileFlush(() => {
-      const logFileContentAsObject = logFileAsObject();
-
-      expect(logFileContentAsObject.message).to.be.eql(expectMessage);
-      expect(logFileContentAsObject.level).to.be.eql('info');
+    valueForAssertion.then((value) => {
+      expect(value.message).to.be.eql(expectMessage);
+      expect(value.level).to.be.eql('info');
 
       logger.close();
       done();
@@ -65,16 +68,15 @@ describe('Ensure logstash is working', () => {
   });
 
   it('should append for lines to file with unsecure logger', (done) => {
+    const valueForAssertion = assertClient(9999);
     const logger = buildLogger(false);
 
     const expectMessage = 'unsecure logger: ' + Date.now();
     logger.log('info', expectMessage);
 
-    waitUntilLogfileFlush(() => {
-      const logFileContentAsObject = logFileAsObject();
-
-      expect(logFileContentAsObject.message).to.be.eql(expectMessage);
-      expect(logFileContentAsObject.level).to.be.eql('info');
+    valueForAssertion.then((value) => {
+      expect(value.message).to.be.eql(expectMessage);
+      expect(value.level).to.be.eql('info');
 
       logger.close();
       done();
