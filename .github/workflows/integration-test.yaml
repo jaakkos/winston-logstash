@@ -21,6 +21,10 @@ jobs:
       - name: Start containers for Winston ${{ matrix.winston-version }}
         working-directory: ./test-bench/logstash/
         run: |
+          mkdir -p logstash/output &&
+          chown -R 1000:1000 logstash/output &&
+          ls -alg &&
+          whoami &&
           docker-compose -f "docker-compose.yml" up -d --build
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -47,5 +51,4 @@ jobs:
         run: |
          docker-compose logs --no-color logstash &&
          ls -alg logstash/output &&
-         cat logstash/output/sample.log &&
          docker-compose -f "docker-compose.yml" down
