@@ -3,6 +3,7 @@ version: '3.7'
 services:
   logstash:
     build: .
+    user: logstash
     volumes:
       - type: bind
         source: ./logstash/config/logstash.yml
