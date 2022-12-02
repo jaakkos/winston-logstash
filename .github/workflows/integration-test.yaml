@@ -22,9 +22,9 @@ jobs:
         working-directory: ./test-bench/logstash/
         run: |
           mkdir -p logstash/output &&
-          chown -R 1000:1000 logstash/output &&
-          ls -alg &&
           whoami &&
+          ls -alg &&
+          chown -R 1000:1000 logstash/output &&
           docker-compose -f "docker-compose.yml" up -d --build
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
