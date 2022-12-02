@@ -1,0 +1,52 @@
+name: Integration tests with Logstash instanse
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 19.x]
+        winston-version: [2x, 3x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start containers for Winston ${{ matrix.winston-version }}
+        working-directory: ./test-bench/logstash/
+        run: docker-compose -f "docker-compose.yml" up -d
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install base project deps
+        run: npm install
+      - name: Build base project
+        run: npm run build
+      - name: Install dependencies for test case
+        working-directory: ./test-bench/winston-${{ matrix.winston-version }}
+        run: npm install
+      - name: Wait for Logstash
+        working-directory: ./test-bench/logstash/
+        run: |
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9777 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9888 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9999 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9777 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9888 &&
+          npx --yes wait-on --timeout 3000 --verbose tcp:localhost:9999 &&
+          docker-compose logs --no-color logstash
+      - run: npm test
+        working-directory: ./test-bench/winston-${{ matrix.winston-version }}
+      - name: Stop containers
+        working-directory: ./test-bench/logstash/
+        if: always()
+        run: |
+         docker-compose logs --no-color logstash &&
+         docker-compose -f "docker-compose.yml" down

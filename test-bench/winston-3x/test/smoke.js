@@ -3,42 +3,45 @@
 // Requiring `winston-logstash` will expose
 // `winston.transports.Logstash`
 //
+const net = require('net');
 const winston = require('winston');
 const LogstashTransport =
   require('winston-logstash/lib/winston-logstash-latest');
 
 const chai = require('chai');
 const expect = chai.expect;
-const fs = require('fs');
-const readLines = (file) => fs.readFileSync(file, 'utf-8').toString();
+const assertClient = (port) => {
+  const client = new net.Socket();
 
+  return new Promise((resolve, rejects) => {
+    client.connect(port, 'localhost', function() {
+      // console.log('Connected');
+      // client.write('Hello, server! Love, Client.');
+    });
 
-const logstashOutputFile = '../logstash/logstash/output/sample.log';
-const clearOutputFile = (done) => fs.writeFile(logstashOutputFile, '', done);
-const logFileAsObject = () => {
-  const logFileContent = readLines(logstashOutputFile);
-  let logFileContentAsObject = {message: '', level: ''};
-  try {
-    logFileContentAsObject = JSON.parse(logFileContent);
-  } catch (e) {
+    client.on('data', function(data) {
+      resolve(JSON.parse(data));
+      // console.log('Received: ' + data);
+      client.destroy(); // kill client after server's response
+    });
 
-  }
-  return logFileContentAsObject;
-};
-const waitUntilLogfileFlush = (done) => {
-  // Logstash file flush is set to 1 sec
-  setTimeout(done, 1100);
+    client.on('close', function() {
+      // console.log('Connection closed');
+    });
+
+    client.on('error', (error) => {
+      rejects(error);
+      client.destroy();
+    });
+  });
 };
 
 describe('Ensure logstash is working', () => {
-  beforeEach('clear file', (done) => {
-    clearOutputFile(done);
-  });
-
   it('should append for lines to file with secure logger', (done) => {
     const logger = winston.createLogger({
       transports: [
         new LogstashTransport({
+          max_connect_retries: -1,
           port: 9888,
           node_name: 'my node name',
           host: 'localhost',
@@ -50,15 +53,13 @@ describe('Ensure logstash is working', () => {
       ],
     });
 
+    const valueForAssertion = assertClient(9999);
     const expectMessage = 'secure logger: ' + Date.now();
     logger.log('info', expectMessage);
 
-    waitUntilLogfileFlush(() => {
-      const logFileContentAsObject = logFileAsObject();
-
-      expect(logFileContentAsObject.message).to.be.eql(expectMessage);
-      expect(logFileContentAsObject.level).to.be.eql('info');
-
+    valueForAssertion.then((value) => {
+      expect(value.message).to.be.eql(expectMessage);
+      expect(value.level).to.be.eql('info');
       logger.close();
       done();
     });
@@ -68,6 +69,7 @@ describe('Ensure logstash is working', () => {
     const logger = winston.createLogger({
       transports: [
         new LogstashTransport({
+          max_connect_retries: -1,
           port: 9777,
           node_name: 'my node name',
           host: 'localhost',
@@ -79,14 +81,13 @@ describe('Ensure logstash is working', () => {
       ],
     });
 
+    const valueForAssertion = assertClient(9999);
     const expectMessage = 'unsecure logger: ' + Date.now();
     logger.log('info', expectMessage);
 
-    waitUntilLogfileFlush(() => {
-      const logFileContentAsObject = logFileAsObject();
-
-      expect(logFileContentAsObject.message).to.be.eql(expectMessage);
-      expect(logFileContentAsObject.level).to.be.eql('info');
+    valueForAssertion.then((value) => {
+      expect(value.message).to.be.eql(expectMessage);
+      expect(value.level).to.be.eql('info');
 
       logger.close();
       done();
