@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   logstash:
-    image: logstash:8.5.0
+    build: .
     volumes:
       - type: bind
         source: ./logstash/config/logstash.yml
@@ -18,7 +18,7 @@ services:
         read_only: true
       - type: bind
         source: ./logstash/output
-        target: /tmp
+        target: /usr/share/logstash/output/output
         read_only: false
     ports:
       - "9888:9888/tcp"
