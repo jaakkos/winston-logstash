@@ -18,7 +18,7 @@ services:
         read_only: true
       - type: bind
         source: ./logstash/output
-        target: /usr/share/logstash/output
+        target: /tmp
         read_only: false
     ports:
       - "9888:9888/tcp"
