@@ -10,9 +10,8 @@ const expect = chai.expect;
 const net = require('net');
 
 const assertClient = (port) => {
-  const client = new net.Socket();
-
   return new Promise((resolve, rejects) => {
+    const client = new net.Socket();
     client.connect(port, 'localhost', function() {
       // console.log('Connected');
       // client.write('Hello, server! Love, Client.');
