@@ -3,7 +3,6 @@ version: '3.7'
 services:
   logstash:
     build: .
-    user: "${UID}:${UID}"
     volumes:
       - type: bind
         source: ./logstash/config/logstash.yml
@@ -17,7 +16,7 @@ services:
         source: ../../test/support/ssl
         target: /usr/share/logstash/ssl
         read_only: true
-      - type: tmpfs
+      - type: bind
         source: ./logstash/output
         target: /usr/share/logstash/output/output
         read_only: false
