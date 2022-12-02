@@ -14,7 +14,6 @@ export function createTestServer(port: number, onData: Function) {
     socket.on('close', () => {
     });
     socket.on('data', (data: Buffer) => {
-      console.log('Data', data.toString())
       onData(data);
     });
   });
@@ -50,7 +49,7 @@ export function createTestSecureServer(port: number, options: {
       onData(data);
     });
     socket.on('error', (error) => {
-      // console.log('Server on error', error)
+
     });
   });
 

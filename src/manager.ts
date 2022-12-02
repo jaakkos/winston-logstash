@@ -19,6 +19,7 @@ export class Manager extends EventEmitter {
   retries: number = -1;
   max_connect_retries: number;
   timeout_connect_retries: number;
+  retry_timeout?: ReturnType<typeof setTimeout> = undefined;
 
   constructor(options: LogstashTransportOptions) {
     super();
@@ -28,16 +29,16 @@ export class Manager extends EventEmitter {
     this.logQueue = new Array();
 
     // Connection retry attributes
-    this.retries = -1;
+    this.retries = 0;
     this.max_connect_retries = options?.max_connect_retries ?? 4;
     this.timeout_connect_retries = options?.timeout_connect_retries ?? 100;
   }
 
   private addEventListeners() {
-    this.on('connection:connected', this.onConnected.bind(this));
-    this.on('connection:closed', this.onConnectionClosed.bind(this));
-    this.on('connection:error', this.onConnectionError.bind(this));
-    this.on('connection:timeout', this.onConnectionError.bind(this));
+    this.once('connection:connected', this.onConnected.bind(this));
+    this.once('connection:closed', this.onConnectionClosed.bind(this));
+    this.once('connection:error', this.onConnectionError.bind(this));
+    this.once('connection:timeout', this.onConnectionError.bind(this));
   }
 
   private removeEventListeners() {
@@ -69,7 +70,7 @@ export class Manager extends EventEmitter {
   private isRetryableError(error: Error) {
     // TODO: Due bug in the orginal implementation
     //       all the errors will get retried
-    return true; // !ECONNREFUSED_REGEXP.test(error.code);
+    return true; // !ECONNREFUSED_REGEXP.test(error.message);
   }
 
   private shouldTryToReconnect(error: Error) {
@@ -87,27 +88,32 @@ export class Manager extends EventEmitter {
 
   private onConnectionError(error: Error) {
     if (this.shouldTryToReconnect(error)) {
+      this.retry();
+    } else {
       this.removeEventListeners();
       this.connection?.close();
       this.emit('error',
           new Error('Max retries reached, transport in silent mode, OFFLINE'));
-    } else {
-      this.retry();
     }
   }
 
   private retry() {
+    if (this.retry_timeout) {
+      clearTimeout(this.retry_timeout);
+    }
+
     this.emit('retrying');
     this.removeEventListeners();
     const self = this;
-    this.once('connection:closed', () => {
-      self.removeEventListeners();
-      setInterval(() => {
-        self.start();
-      },
-      self.timeout_connect_retries);
-    });
-    this.connection?.close();
+      this.once('connection:closed', () => {
+        self.removeEventListeners();
+        self.retry_timeout = setTimeout(() => {
+          self.connection = undefined
+          self.start();
+        },
+        self.timeout_connect_retries);
+      });
+      this.connection?.close();
   }
 
   start() {

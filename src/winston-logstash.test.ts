@@ -194,7 +194,10 @@ describe('winston-logstash transport', function () {
         }
       });
 
-      logger = createLogger(nextFree, true, {}),
+      logger = createLogger(nextFree, true, {
+        timeout_connect_retries: 1,
+        max_connect_retries: 2
+      }),
         logger.transports.logstash.on('error', function (err) {
           expect(err).toBeInstanceOf(Error);
           if (silence) {
@@ -214,7 +217,10 @@ describe('winston-logstash transport', function () {
 
   describe('without logstash server', function () {
     test('fallback to silent mode if logstash server is down', function (done) {
-      const logger = createLogger(28747, false, {});
+      const logger = createLogger(28747, false, {
+        timeout_connect_retries: 4,
+        max_connect_retries: 3
+      });
 
       logger.transports.logstash.on('error', function (err) {
         expect(logger.transports.logstash.silent).toBe(true);
@@ -225,7 +231,10 @@ describe('winston-logstash transport', function () {
     });
 
     test('emit an error message when it fallback to silent mode', function (done) {
-      const logger = createLogger(28747, false, {});
+      const logger = createLogger(28747, false, {
+        timeout_connect_retries: 1,
+        max_connect_retries: 5
+      });
       let called = true;
 
       logger.transports.logstash.on('error', function (err) {
@@ -242,6 +251,7 @@ describe('winston-logstash transport', function () {
       // Wait for timeout for logger before sending first message
       const interval = setInterval(function () {
         clearInterval(interval);
+        logger.log('info', 'hello world', { stream: 'sample' });
       }, 400);
     });
   });

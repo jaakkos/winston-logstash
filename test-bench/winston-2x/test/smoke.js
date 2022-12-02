@@ -27,26 +27,28 @@ const waitUntilLogfileFlush = (done) => {
   setTimeout(done, 1100);
 };
 
+const buildLogger = (ssl) => new (winston.Logger)({
+  transports: [
+    new transports.Logstash({
+      max_connect_retries: 100,
+      port: ssl ? 9888 : 9777,
+      node_name: 'my node name',
+      host: 'localhost',
+      ssl_enable: ssl,
+      ca: __dirname + '/../../../test/support/ssl/ca.cert',
+      ssl_key: __dirname + '/../../../test/support/ssl/client.key',
+      ssl_cert: __dirname + '/../../../test/support/ssl/client.cert',
+    }),
+  ],
+});
+
 describe('Ensure logstash is working', () => {
   beforeEach('clear file', (done) => {
     clearOutputFile(done);
   });
 
   it('should append for lines to file with secure logger', (done) => {
-    const logger = new (winston.Logger)({
-      transports: [
-        new transports.Logstash({
-          max_connect_retries: -1,
-          port: 9888,
-          node_name: 'my node name',
-          host: '0.0.0.0',
-          ssl_enable: true,
-          ca: __dirname + '/../../../test/support/ssl/ca.cert',
-          ssl_key: __dirname + '/../../../test/support/ssl/client.key',
-          ssl_cert: __dirname + '/../../../test/support/ssl/client.cert',
-        }),
-      ],
-    });
+    const logger = buildLogger(true);
 
     const expectMessage = 'secure logger: ' + Date.now();
     logger.log('info', expectMessage);
@@ -63,20 +65,7 @@ describe('Ensure logstash is working', () => {
   });
 
   it('should append for lines to file with unsecure logger', (done) => {
-    const logger = new (winston.Logger)({
-      transports: [
-        new transports.Logstash({
-          max_connect_retries: -1,
-          port: 9777,
-          node_name: 'my node name',
-          host: '0.0.0.0',
-          ssl_enable: false,
-          ca: __dirname + '/../../../test/support/ssl/ca.cert',
-          ssl_key: __dirname + '/../../../test/support/ssl/client.key',
-          ssl_cert: __dirname + '/../../../test/support/ssl/client.cert',
-        }),
-      ],
-    });
+    const logger = buildLogger(false);
 
     const expectMessage = 'unsecure logger: ' + Date.now();
     logger.log('info', expectMessage);

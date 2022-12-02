@@ -1,7 +1,7 @@
 {
-  "name": "winston-2x",
+  "name": "winston-3x",
   "version": "1.0.0",
-  "description": "for testing Winston 2.x",
+  "description": "for testing Winston 3.x",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
