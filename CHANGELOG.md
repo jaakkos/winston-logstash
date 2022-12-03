@@ -1,12 +1,11 @@
 # Changelog
 
-## Not released yet
-
-## 1.1.0-rc1 (2022-11-28)
+## 1.1.0 (2022-12-03)
 
 Features:
 
-- Migrete to TypeScript
+- Migrate to TypeScript
+- Add end2end test for both winston 2.x and 3.x.
 
 ## 1.0.2 (2022-11-09)
 
