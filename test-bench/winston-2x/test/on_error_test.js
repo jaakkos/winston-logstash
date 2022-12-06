@@ -2,8 +2,8 @@
 const winston = require('winston');
 const transports = require('../../../lib/winston-logstash');
 
-describe.only('Ensure error is handled correctly', () => {
-  it.only('add error eventhandler for logger', (done) => {
+describe('Ensure error is handled correctly', () => {
+  it('add error eventhandler for logger', (done) => {
     const logstashTransport = new transports.Logstash({
       max_connect_retries: 2,
       port: 7878,
