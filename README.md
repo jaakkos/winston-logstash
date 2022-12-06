@@ -2,6 +2,8 @@
 
 [![Build Status](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml/badge.svg)](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml)
 
+[![Integration tests with Logstash instance](https://github.com/jaakkos/winston-logstash/actions/workflows/integration-test.yaml/badge.svg?branch=main)](https://github.com/jaakkos/winston-logstash/actions/workflows/integration-test.yaml)
+
 A [Logstash TCP][0] transport for [winston][1].
 
 ## OBS
