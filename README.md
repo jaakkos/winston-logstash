@@ -66,6 +66,46 @@ The project has now been migrated to TypeScript, everything should be backward c
 
 ## FAQ
 
+### Error handling with the transport
+
+Logstash transport is pretty complex transport so there is a good chance for errors. You can check the test case from `test-bench` folder where is test case per Winston's version. The simplest ways to write the right error logic would be:
+
+#### Winston 2.x
+
+For Winston 2.x you have to add the error listener to the transport.
+
+
+``` js
+const logstashTransport =  new LogstashTransport({...});
+
+logstashTransport.on('error', (error) => {
+  // Make the decission in here
+  throw new Error('Stop the press, logging not working');
+});
+
+```
+
+#### Winston 3.x
+
+For Winston 3.x you have to add the error listener to the logger. Remember that there might be also other errors which are not originated from LogstashTransport.
+
+
+``` js
+const logger = winston.createLogger({
+      transports: [
+        new LogstashTransport({
+              ...
+               max_connect_retries: -1
+              ...
+              })]});
+
+logger.on('error', (error) => {
+  // Make the decission in here
+  throw new Error('Stop the press, logging not working');
+});
+
+```
+
 ### What configuration options are available?
 
 See documentation from [docs/configuration](docs/configuration.md)
