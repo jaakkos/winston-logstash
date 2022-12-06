@@ -3,12 +3,12 @@ import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 import { sslFilePath, createTestServer, createTestSecureServer, setup, tearDown } from '../test/test_helper';
 import net from 'net'
 import tls from 'tls';
-import winston, { LoggerInstance, LoggerStatic, Winston } from 'winston';
+import winston, { LoggerInstance } from 'winston';
 import timekeeper from 'timekeeper';
 const freezedTime = new Date(1330688329321);
 const port = 28777;
 
-import { Logstash } from '../src/winston-logstash';
+import { Logstash } from './winston-logstash';
 
 const portSeed = port;
 const nextFreePort = () => portSeed;

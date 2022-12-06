@@ -8,8 +8,6 @@ const winston = require('winston');
 const LogstashTransport =
   require('winston-logstash/lib/winston-logstash-latest');
 
-const chai = require('chai');
-const expect = chai.expect;
 const assertClient = (port) => {
   const client = new net.Socket();
 
@@ -58,8 +56,8 @@ describe('Ensure logstash is working', () => {
     logger.log('info', expectMessage);
 
     valueForAssertion.then((value) => {
-      expect(value.message).to.be.eql(expectMessage);
-      expect(value.level).to.be.eql('info');
+      expect(value.message).toEqual(expectMessage);
+      expect(value.level).toEqual('info');
       logger.close();
       done();
     });
@@ -86,8 +84,8 @@ describe('Ensure logstash is working', () => {
     logger.log('info', expectMessage);
 
     valueForAssertion.then((value) => {
-      expect(value.message).to.be.eql(expectMessage);
-      expect(value.level).to.be.eql('info');
+      expect(value.message).toEqual(expectMessage);
+      expect(value.level).toEqual('info');
 
       logger.close();
       done();
