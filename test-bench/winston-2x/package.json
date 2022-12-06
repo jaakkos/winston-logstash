@@ -4,13 +4,13 @@
   "description": "for testing Winston 2.x",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "jest"
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "chai": "4.3.6",
-    "mocha": "10.1.0",
+  "dependencies": { },
+  "devDependencies": {
+    "jest": "29.3.1",
     "winston": "2.4.3",
     "winston-logstash": "file:../../."
   }
