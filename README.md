@@ -70,12 +70,13 @@ The project has now been migrated to TypeScript, everything should be backward c
 
 ### Error handling with the transport
 
-Logstash transport is pretty complex transport so there is a good chance for errors. You can check the test case from `test-bench` folder where is test case per Winston's version. The simplest ways to write the right error logic would be:
+While this is a relatively complex transport with an internal state and IO, I think the current solution is the yet best approach to network failure. Transport is transparent about the errors and lets the user decide what to do in the case of an error. Suppose the developer chooses not to address them, it fallback to a safe default, an exception that stops the process. I think this way; it's simple but not always easy.
+
+You can check the test case from `test-bench` folder where is the test case per Winston's version. The simplest ways to write the error logic would be:
 
 #### Winston 2.x
 
 For Winston 2.x you have to add the error listener to the transport.
-
 
 ``` js
 const logstashTransport =  new LogstashTransport({...});
@@ -90,7 +91,6 @@ logstashTransport.on('error', (error) => {
 #### Winston 3.x
 
 For Winston 3.x you have to add the error listener to the logger. Remember that there might be also other errors which are not originated from LogstashTransport.
-
 
 ``` js
 const logger = winston.createLogger({
