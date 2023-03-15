@@ -15,55 +15,60 @@ The project has now been migrated to TypeScript, everything should be backward c
 ### Winston 2.x
 
 ``` js
-  // See test cases from test-bench/winston-2x/test/smoke.js
-  const winston = require('winston');
-  const transports = require('winston-logstash');
+// See test cases from test-bench/winston-2x/test/smoke.js
+const winston = require("winston");
+const transports = require("winston-logstash");
 
-    const logger = new (winston.Logger)({
-      transports: [
-        new transports.Logstash({
-              port: 28777,
-              node_name: 'my node name',
-              host: '127.0.0.1'})]});
+const logger = new winston.Logger({
+  transports: [
+    new transports.Logstash({
+      port: 28777,
+      node_name: "my node name",
+      host: "127.0.0.1",
+    }),
+  ],
+});
 
-    log.info("Hello world!");
+logger.info("Hello world!");
 ```
 
 ### Winston 3.x
 
 ``` js
-  // See test cases from test-bench/winston-3x/test/smoke.js
-  const winston = require('winston');
-  const LogstashTransport = require('winston-logstash/lib/winston-logstash-latest');
+// See test cases from test-bench/winston-3x/test/smoke.js
+const winston = require("winston");
+const LogstashTransport = require("winston-logstash/lib/winston-logstash-latest");
 
-    const logger = winston.createLogger({
-      transports: [
-        new LogstashTransport({
-              port: 28777,
-              node_name: 'my node name',
-              host: '127.0.0.1'})]});
+const logger = winston.createLogger({
+  transports: [
+    new LogstashTransport({
+      port: 28777,
+      node_name: "my node name",
+      host: "127.0.0.1",
+    }),
+  ],
+});
 
-    log.info("Hello world!");
+logger.info("Hello world!");
 ```
 
 ### Logstash config
 
 ``` ruby
-  # See example from test-bench/logstash/logstash/pipeline/default.conf
-  input {
-    # Sample input over TCP
-    tcp { port => 28777 type=>"sample" }
-  }
-  output {
-    stdout { debug => true }
-  }
+# See example from test-bench/logstash/logstash/pipeline/default.conf
+input {
+  # Sample input over TCP
+  tcp { port => 28777 type=>"sample" }
+}
+output {
+  stdout { debug => true }
+}
 
-  filter {
-    json {
-      source => "message"
-    }
+filter {
+  json {
+    source => "message"
   }
-
+}
 ```
 
 ## FAQ
@@ -105,7 +110,6 @@ logger.on('error', (error) => {
   // Make the decission in here
   throw new Error('Stop the press, logging not working');
 });
-
 ```
 
 ### What configuration options are available?
