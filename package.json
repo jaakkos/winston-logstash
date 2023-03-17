@@ -8,7 +8,8 @@
     "test": "jest",
     "lint": "eslint .",
     "watch": "babel src --out-dir lib --extensions '.ts' --watch",
-    "build": "babel src --out-dir lib --extensions '.ts'"
+    "build": "babel src --out-dir lib --extensions '.ts'",
+    "version": "auto-changelog -p && git add CHANGELOG.md"
   },
   "files": [
     "lib/"
@@ -39,7 +40,8 @@
     "ts-jest": "29.0.3",
     "ts-loader": "9.4.1",
     "typescript": "4.8.4",
-    "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 "
+    "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 ",
+    "auto-changelog": "*"
   },
   "keywords": [
     "logging",
