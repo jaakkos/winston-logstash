@@ -141,14 +141,19 @@ export class Manager extends EventEmitter {
 
   flush() {
     this.emit('flushing');
-    while (this.connection &&
-            this.connection.readyToSend() &&
+    while (this.connection?.readyToSend() &&
             this.logQueue.length) {
       const logEntry = this.logQueue.shift();
       if (logEntry) {
         const [entry, callback] = logEntry;
-        this.connection.send(entry + '\n');
-        callback();
+        this.connection.send(entry + '\n', (error?: Error) => {
+          if (error) {
+            this.logQueue.unshift(logEntry)
+          } else {
+            callback();
+          }
+        });
+
       }
     }
   }

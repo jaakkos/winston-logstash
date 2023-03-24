@@ -1,6 +1,6 @@
 
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
-import { sslFilePath, createTestServer, createTestSecureServer, setup, tearDown } from '../test/test_helper';
+import { sslFilePath, createTestServer, createTestSecureServer, setup, tearDown, createTestServerWithRestart } from '../test/test_helper';
 import net from 'net'
 import tls from 'tls';
 import winston, { LoggerInstance } from 'winston';
@@ -9,6 +9,7 @@ const freezedTime = new Date(1330688329321);
 const port = 28777;
 
 import { Logstash } from './winston-logstash';
+import { Socket } from 'net';
 
 const portSeed = port;
 const nextFreePort = () => portSeed;
@@ -114,6 +115,34 @@ describe('winston-logstash transport', function () {
       });
 
       logger.log('info', 'hello world', { 'default_meta_override': 'tada' });
+    });
+
+    test('reconnect after server closes the connection', function (done) {
+      let expected = {
+        'stream': 'sample',
+        'level': 'info',
+        'message': 'hello world',
+        'label': 'test'
+      };
+      let response,
+        called = 0;
+      const nextPort = nextFreePort();
+      logger = createLogger(nextPort),
+        testServer = createTestServerWithRestart(nextPort, (data: Buffer, socket: Socket) => {
+          called++;
+          response = data.toString();
+          expect(JSON.parse(response)).toEqual(expected);
+          if (called == 2) {
+            done();
+          } else {
+            socket.destroy()
+            setTimeout(() => {
+              logger.log('info', 'hello world', { stream: 'sample' });
+            }, 1)
+
+          }
+        });
+      logger.log('info', 'hello world', { stream: 'sample' });
     });
 
     // Teardown

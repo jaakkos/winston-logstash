@@ -16,6 +16,7 @@ enum ConnectionActions {
   Initializing = "Initializing",
   Connecting = "Connecting",
   Closing = "Closing",
+  Tranferring = "Transferring",
   HandlingError = "HandlingError"
 }
 
@@ -45,6 +46,7 @@ export class Connection {
 
   protected socketOnConnect() {
     this.socket?.setKeepAlive(true, 60 * 1000);
+    this.action = ConnectionActions.Tranferring;
     this.manager.emit('connection:connected');
   }
 
@@ -69,12 +71,12 @@ export class Connection {
     this.manager.emit('connection:closed');
   }
 
-  send(message: string) {
-    this.socket?.write(message);
+  send(message: string, writeCallback: (error?: Error) => void) {
+    this.socket?.write(message, writeCallback);
   }
 
   readyToSend() {
-    return this.socket && this.socket.readyState === 'open';
+    return this.socket?.readyState === 'open';
   }
 
   connect() {
