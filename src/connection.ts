@@ -12,23 +12,34 @@ import { WinstonModuleTransportOptions } from 'winston';
 import { Manager } from './manager';
 import { LogstashTransportSSLOptions } from './types';
 
+enum ConnectionActions {
+  Initializing = "Initializing",
+  Connecting = "Connecting",
+  Closing = "Closing",
+  HandlingError = "HandlingError"
+}
+
 export class Connection {
   protected socket: Socket | undefined;
   protected host: string;
   protected port: number;
   protected manager: any;
+  protected action: ConnectionActions;
 
   constructor(options: WinstonModuleTransportOptions, manager: Manager) {
+    this.action = ConnectionActions.Initializing;
     this.manager = manager;
     this.host = options?.host ?? '127.0.0.1';
     this.port = options?.port ?? 28777;
   }
 
   private socketOnError(error: Error) {
+    this.action = ConnectionActions.HandlingError;
     this.manager.emit('connection:error', error);
   }
 
   private socketOnTimeout() {
+    this.action = ConnectionActions.HandlingError;
     this.manager.emit('connection:timeout', this.socket?.readyState);
   }
 
@@ -38,7 +49,11 @@ export class Connection {
   }
 
   private socketOnClose(error: Error) {
-    this.manager.emit('connection:closed', error);
+    if (this.action === ConnectionActions.Closing) {
+      this.manager.emit('connection:closed', error);
+    } else {
+      this.manager.emit('connection:closed:by-server', error);
+    }
   }
 
   protected addEventListeners(socket: Socket) {
@@ -48,6 +63,7 @@ export class Connection {
   }
 
   close() {
+    this.action = ConnectionActions.Closing;
     this.socket?.removeAllListeners();
     this.socket?.destroy();
     this.manager.emit('connection:closed');
@@ -62,12 +78,13 @@ export class Connection {
   }
 
   connect() {
-    // Place Holder
+    this.action = ConnectionActions.Connecting;
   }
 }
 
 export class PlainConnection extends Connection {
   connect() {
+    super.connect();
     this.socket = new Socket();
     this.socket.connect(this.port, this.host);
     super.addEventListeners(this.socket);
@@ -102,6 +119,7 @@ export class SecureConnection extends Connection {
   }
 
   connect() {
+    super.connect();
     this.socket = tls.connect(this.port,
         this.host,
         this.secureContextOptions);

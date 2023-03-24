@@ -37,6 +37,7 @@ export class Manager extends EventEmitter {
   private addEventListeners() {
     this.once('connection:connected', this.onConnected.bind(this));
     this.once('connection:closed', this.onConnectionClosed.bind(this));
+    this.once('connection:closed:by-server', this.onConnectionError.bind(this));
     this.once('connection:error', this.onConnectionError.bind(this));
     this.once('connection:timeout', this.onConnectionError.bind(this));
   }
@@ -44,6 +45,7 @@ export class Manager extends EventEmitter {
   private removeEventListeners() {
     this.off('connection:connected', this.onConnected.bind(this));
     this.off('connection:closed', this.onConnectionClosed.bind(this));
+    this.off('connection:closed:by-server', this.onConnectionError.bind(this));
     this.off('connection:error', this.onConnectionError.bind(this));
     this.off('connection:timeout', this.onConnectionError.bind(this));
   }
@@ -62,7 +64,7 @@ export class Manager extends EventEmitter {
     this.flush();
   }
 
-  private onConnectionClosed() {
+  private onConnectionClosed(error: Error) {
     this.emit('closed');
     this.removeEventListeners();
   }
