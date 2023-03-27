@@ -6,10 +6,6 @@
 
 A [Logstash TCP][0] transport for [winston][1].
 
-## OBS
-
-The project has now been migrated to TypeScript, everything should be backward compatible but it might cause some new bugs anyway.
-
 ## Usage
 
 ### Winston 2.x
