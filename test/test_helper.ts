@@ -23,6 +23,24 @@ export function createTestServer(port: number, onData: Function) {
   return server;
 }
 
+export function createTestServerWithRestart(port: number, onData: Function) {
+  const server = net.createServer(function (socket: Socket) {
+    socket.on('open', () => {
+
+    });
+    socket.on('end', () => {
+
+    });
+    socket.on('data', (data: Buffer) => {
+      onData(data, socket);
+    });
+  });
+
+  server.listen(port);
+
+  return server;
+}
+
 export function createTestSecureServer(port: number, options: {
   serverKey?: string
   serverCert?: string, verify?: boolean
