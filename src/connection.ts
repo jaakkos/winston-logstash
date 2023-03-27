@@ -50,6 +50,10 @@ export class Connection {
     this.manager.emit('connection:connected');
   }
 
+  protected socketOnDrain() {
+    this.manager.emit('connection:drain');
+  }
+
   private socketOnClose(error: Error) {
     if (this.action === ConnectionActions.Closing) {
       this.manager.emit('connection:closed', error);
@@ -59,6 +63,7 @@ export class Connection {
   }
 
   protected addEventListeners(socket: Socket) {
+    socket.on('drain', this.socketOnDrain.bind(this));
     socket.once('error', this.socketOnError.bind(this));
     socket.once('timeout', this.socketOnTimeout.bind(this));
     socket.once('close', this.socketOnClose.bind(this));
@@ -71,11 +76,11 @@ export class Connection {
     this.manager.emit('connection:closed');
   }
 
-  send(message: string, writeCallback: (error?: Error) => void) {
-    this.socket?.write(message, writeCallback);
+  send(message: string, writeCallback: (error?: Error) => void): boolean {
+    return this.socket?.write(Buffer.from(message), writeCallback) === true;
   }
 
-  readyToSend() {
+  readyToSend(): boolean {
     return this.socket?.readyState === 'open';
   }
 

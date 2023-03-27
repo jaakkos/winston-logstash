@@ -118,31 +118,31 @@ describe('winston-logstash transport', function () {
     });
 
     test('reconnect after server closes the connection', function (done) {
-      let expected = {
-        'stream': 'sample',
-        'level': 'info',
-        'message': 'hello world',
-        'label': 'test'
-      };
       let response,
-        called = 0;
+        socketOnDataIterations = 0;
       const nextPort = nextFreePort();
       logger = createLogger(nextPort),
         testServer = createTestServerWithRestart(nextPort, (data: Buffer, socket: Socket) => {
-          called++;
-          response = data.toString();
-          expect(JSON.parse(response)).toEqual(expected);
-          if (called == 2) {
-            done();
-          } else {
-            socket.destroy()
-            setTimeout(() => {
-              logger.log('info', 'hello world', { stream: 'sample' });
-            }, 1)
+          response = JSON.parse(data.toString())
+
+          switch (++socketOnDataIterations) {
+            case 1:
+              expect(response.message).toEqual('Log row before reconnect');
+              socket.destroy()
+              setTimeout(() => {
+                logger.log('info', 'Log row after reconnect', { stream: 'sample' });
+              }, 10);
+              break;
+
+            case 2:
+              expect(response.message).toEqual('Log row after reconnect');
+              done();
+              break;
 
           }
         });
-      logger.log('info', 'hello world', { stream: 'sample' });
+
+      logger.log('info', 'Log row before reconnect', { stream: 'sample' });
     });
 
     // Teardown

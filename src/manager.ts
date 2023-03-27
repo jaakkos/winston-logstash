@@ -15,23 +15,23 @@ export class Manager extends EventEmitter {
   connection: Connection | undefined
   logQueue: [String, Function][];
   options: LogstashTransportOptions;
-  ssl_enable: Boolean;
+  useSecureConnection: Boolean;
   retries: number = -1;
-  max_connect_retries: number;
-  timeout_connect_retries: number;
-  retry_timeout?: ReturnType<typeof setTimeout> = undefined;
+  maxConnectRetries: number;
+  timeoutConnectRetries: number;
+  retryTimeout?: ReturnType<typeof setTimeout> = undefined;
 
   constructor(options: LogstashTransportOptions) {
     super();
     this.options = options;
-    this.ssl_enable = options?.ssl_enable === true;
+    this.useSecureConnection = options?.ssl_enable === true;
 
     this.logQueue = new Array();
 
     // Connection retry attributes
     this.retries = 0;
-    this.max_connect_retries = options?.max_connect_retries ?? 4;
-    this.timeout_connect_retries = options?.timeout_connect_retries ?? 100;
+    this.maxConnectRetries = options?.max_connect_retries ?? 4;
+    this.timeoutConnectRetries = options?.timeout_connect_retries ?? 100;
   }
 
   private addEventListeners() {
@@ -40,6 +40,7 @@ export class Manager extends EventEmitter {
     this.once('connection:closed:by-server', this.onConnectionError.bind(this));
     this.once('connection:error', this.onConnectionError.bind(this));
     this.once('connection:timeout', this.onConnectionError.bind(this));
+    this.on('connection:drain', this.flush.bind(this));
   }
 
   private removeEventListeners() {
@@ -48,10 +49,11 @@ export class Manager extends EventEmitter {
     this.off('connection:closed:by-server', this.onConnectionError.bind(this));
     this.off('connection:error', this.onConnectionError.bind(this));
     this.off('connection:timeout', this.onConnectionError.bind(this));
+    this.off('connection:drain', this.flush.bind(this));
   }
 
   private createConnection() {
-    if (this.ssl_enable) {
+    if (this.useSecureConnection) {
       return new SecureConnection(this.options, this);
     } else {
       return new PlainConnection(this.options, this);
@@ -77,8 +79,8 @@ export class Manager extends EventEmitter {
 
   private shouldTryToReconnect(error: Error) {
     if (this.isRetryableError(error) === true) {
-      if (this.max_connect_retries < 0 ||
-      this.retries < this.max_connect_retries) {
+      if (this.maxConnectRetries < 0 ||
+      this.retries < this.maxConnectRetries) {
         return true;
       } else {
         return false;
@@ -100,22 +102,23 @@ export class Manager extends EventEmitter {
   }
 
   private retry() {
-    if (this.retry_timeout) {
-      clearTimeout(this.retry_timeout);
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
     }
 
     this.emit('retrying');
     this.removeEventListeners();
+
     const self = this;
-      this.once('connection:closed', () => {
-        self.removeEventListeners();
-        self.retry_timeout = setTimeout(() => {
-          self.connection = undefined
-          self.start();
-        },
-        self.timeout_connect_retries);
-      });
-      this.connection?.close();
+    this.once('connection:closed', () => {
+      self.removeEventListeners();
+      self.retryTimeout = setTimeout(() => {
+        self.connection = undefined
+        self.start();
+      },
+      self.timeoutConnectRetries);
+    });
+    this.connection?.close();
   }
 
   start() {
@@ -141,19 +144,19 @@ export class Manager extends EventEmitter {
 
   flush() {
     this.emit('flushing');
-    while (this.connection?.readyToSend() &&
-            this.logQueue.length) {
+    let connectionIsDrained = true;
+    while (this.logQueue.length && connectionIsDrained && this.connection?.readyToSend()) {
       const logEntry = this.logQueue.shift();
       if (logEntry) {
         const [entry, callback] = logEntry;
-        this.connection.send(entry + '\n', (error?: Error) => {
+        const self = this;
+        connectionIsDrained = this.connection.send(entry + '\n', (error?: Error) => {
           if (error) {
-            this.logQueue.unshift(logEntry)
+            self.logQueue.unshift(logEntry)
           } else {
             callback();
           }
         });
-
       }
     }
   }
