@@ -17,7 +17,7 @@ describe('Manager', () => {
   };
 
   beforeEach(() => {
-    MockedConnection.mockClear();
+    // MockedConnection.mockClear();
     MockedPlainConnection.mockClear();
     MockedSecureConnection.mockClear();
   });
