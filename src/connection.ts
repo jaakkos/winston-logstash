@@ -24,7 +24,7 @@ export class Connection {
   protected socket: Socket | undefined;
   protected host: string;
   protected port: number;
-  protected manager: any;
+  protected manager: Manager;
   protected action: ConnectionActions;
 
   constructor(options: WinstonModuleTransportOptions, manager: Manager) {
@@ -93,9 +93,9 @@ export class PlainConnection extends Connection {
   connect() {
     super.connect();
     this.socket = new Socket();
-    this.socket.connect(this.port, this.host);
     super.addEventListeners(this.socket);
     this.socket.on('connect', super.socketOnConnect.bind(this));
+    this.socket.connect(this.port, this.host);
   }
 }
 
