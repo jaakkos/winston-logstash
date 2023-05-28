@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "watch": "babel src --out-dir lib --extensions '.ts' --watch",
     "build": "babel src --out-dir lib --extensions '.ts'",
     "version": "auto-changelog -p && git add CHANGELOG.md"
