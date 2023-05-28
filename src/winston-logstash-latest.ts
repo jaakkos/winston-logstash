@@ -8,6 +8,7 @@
 import Transport from "winston-transport";
 import { Manager } from './manager';
 import { LogstashTransportOptions } from "./types";
+import { IConnection, PlainConnection, SecureConnection } from "./connection";
 
 //
 // Inherit from `winston-transport` so you can take advantage
@@ -15,13 +16,15 @@ import { LogstashTransportOptions } from "./types";
 //
 module.exports = class LogstashTransport extends Transport {
   private manager: Manager;
+  private connection: IConnection;
   public name: string;
   constructor(options: LogstashTransportOptions) {
     super(options);
 
     this.name = 'logstash';
 
-    this.manager = new Manager(options);
+    this.connection = options.ssl_enable ? new SecureConnection(options) : new PlainConnection(options);
+    this.manager = new Manager(options, this.connection);
     this.manager.on('error', this.onError.bind(this));
     this.manager.start();
   }

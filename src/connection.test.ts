@@ -7,23 +7,18 @@ import { sslFilePath } from '../test/test_helper'
 
 jest.mock('net');
 jest.mock('tls');
-jest.mock('./manager');
 
 const MockedNet = net as jest.Mocked<typeof net>;
 const MockedTls = tls as jest.Mocked<typeof tls>;
-const MockedManager = Manager as jest.MockedClass<typeof Manager>;
 
 beforeEach(() => {
     MockedNet.Socket.mockClear();
     MockedTls.connect.mockClear();
-    MockedManager.mockClear();
 });
 
 describe('Connection', () => {
-    // @ts-ignore
-    const manager = new Manager();
     const options = { host: 'localhost', port: 12345 };
-    const connection = new Connection(options, manager);
+    const connection = new PlainConnection(options);
 
     test('initializes with provided options', () => {
         // @ts-ignore

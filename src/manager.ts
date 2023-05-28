@@ -5,27 +5,25 @@
  *
  */
 
-import {Connection, SecureConnection, PlainConnection} from './connection'
+import { IConnection } from './connection'
 import { EventEmitter } from 'events';
 import { LogstashTransportOptions, LogEntry } from './types';
 
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 
 export class Manager extends EventEmitter {
-  connection: Connection | undefined
-  logQueue: [String, Function][];
-  options: LogstashTransportOptions;
-  useSecureConnection: Boolean;
-  retries: number = -1;
-  maxConnectRetries: number;
-  timeoutConnectRetries: number;
-  retryTimeout?: ReturnType<typeof setTimeout> = undefined;
+  private connection: IConnection
+  private logQueue: [String, Function][];
+  private options: LogstashTransportOptions;
+  private retries: number = -1;
+  private maxConnectRetries: number;
+  private timeoutConnectRetries: number;
+  private retryTimeout?: ReturnType<typeof setTimeout> = undefined;
 
-  constructor(options: LogstashTransportOptions) {
+  constructor(options: LogstashTransportOptions, connection: IConnection) {
     super();
     this.options = options;
-    this.useSecureConnection = options?.ssl_enable === true;
-
+    this.connection = connection;
     this.logQueue = new Array();
 
     // Connection retry attributes
@@ -52,14 +50,6 @@ export class Manager extends EventEmitter {
     this.off('connection:drain', this.flush.bind(this));
   }
 
-  private createConnection() {
-    if (this.useSecureConnection) {
-      return new SecureConnection(this.options, this);
-    } else {
-      return new PlainConnection(this.options, this);
-    }
-  }
-
   private onConnected() {
     this.emit('connected');
     this.retries = 0;
@@ -80,7 +70,7 @@ export class Manager extends EventEmitter {
   private shouldTryToReconnect(error: Error) {
     if (this.isRetryableError(error) === true) {
       if (this.maxConnectRetries < 0 ||
-      this.retries < this.maxConnectRetries) {
+        this.retries < this.maxConnectRetries) {
         return true;
       } else {
         return false;
@@ -97,7 +87,7 @@ export class Manager extends EventEmitter {
       this.removeEventListeners();
       this.connection?.close();
       this.emit('error',
-          new Error('Max retries reached, transport in silent mode, OFFLINE'));
+        new Error('Max retries reached, transport in silent mode, OFFLINE'));
     }
   }
 
@@ -113,21 +103,21 @@ export class Manager extends EventEmitter {
     this.once('connection:closed', () => {
       self.removeEventListeners();
       self.retryTimeout = setTimeout(() => {
-        self.connection = undefined
         self.start();
       },
-      self.timeoutConnectRetries);
+        self.timeoutConnectRetries);
     });
-    this.connection?.close();
+    this.connection.close();
+  }
+
+  public setConnection(connection: IConnection): void {
+    this.connection = connection;
   }
 
   start() {
-    if (!this.connection) {
-      this.retries++;
-      this.connection = this.createConnection();
-      this.addEventListeners();
-      this.connection.connect();
-    }
+    this.retries++;
+    this.addEventListeners();
+    this.connection.connect(this);
   }
 
   log(entry: string, callback: Function) {
