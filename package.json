@@ -7,8 +7,6 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint .",
-    "lint:fix": "eslint .",
     "watch": "babel src --out-dir lib --extensions '.ts' --watch",
     "build": "babel src --out-dir lib --extensions '.ts'",
     "version": "auto-changelog -p && git add CHANGELOG.md"
