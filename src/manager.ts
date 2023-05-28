@@ -13,7 +13,7 @@ const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 
 export class Manager extends EventEmitter {
   private connection: IConnection
-  private logQueue: [String, Function][];
+  private logQueue: Array<[string, Function]>;
   private options: LogstashTransportOptions;
   private retries: number = -1;
   private maxConnectRetries: number;
