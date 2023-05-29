@@ -1,5 +1,4 @@
-import { Connection, PlainConnection, SecureConnection } from './connection';
-import { Manager } from './manager';
+import { Connection, PlainConnection, SecureConnection, ConnectionActions, ConnectionEvents } from './connection'; 
 import net from 'net';
 import tls from 'tls';
 import { EventEmitter } from 'events';
@@ -11,9 +10,7 @@ jest.mock('tls');
 const MockedNet = net as jest.Mocked<typeof net>;
 const MockedTls = tls as jest.Mocked<typeof tls>;
 
-let manager: Manager;
-let connection: Connection;
-let socket: net.Socket;
+let socket: net.Socket & { emit: jest.Mock, readyState: string };
 let options: { host: string, port: number };
 
 beforeEach(() => {
@@ -21,12 +18,15 @@ beforeEach(() => {
     MockedTls.connect.mockClear();
 
     options = { host: 'localhost', port: 12345 };
-    connection = new PlainConnection(options);
-    manager = new Manager({}, connection);
-    socket = new EventEmitter() as net.Socket;
+
+    socket = new EventEmitter() as net.Socket & { emit: jest.Mock, readyState: string };
     socket.write = jest.fn().mockReturnValue(true);
     socket.removeAllListeners = jest.fn();
     socket.destroy = jest.fn();
+    socket.connect = jest.fn().mockImplementation(() => {
+        socket.emit('connect')
+    });
+    socket.readyState = 'open';
 });
 
 describe('Connection', () => {
@@ -40,15 +40,12 @@ describe('Connection', () => {
         });
 
         test('initializes with provided options', () => {
-            // @ts-ignore
-            expect(connection.host).toBe(options.host);
-            // @ts-ignore
-            expect(connection.port).toBe(options.port);
+            expect(connection['host']).toBe(options.host);
+            expect(connection['port']).toBe(options.port);
         });
 
         test('can send a message', () => {
-            // @ts-ignore
-            connection.socket = socket;
+            connection['socket'] = socket;
             const message = 'test message';
             const callback = jest.fn();
 
@@ -59,20 +56,26 @@ describe('Connection', () => {
         });
 
         test('can close connection', () => {
-            // @ts-ignore
-            connection.socket = socket;
-
+            connection['socket'] = socket;
             connection.close();
 
             expect(socket.removeAllListeners).toHaveBeenCalled();
             expect(socket.destroy).toHaveBeenCalled();
+            expect(connection['action']).toBe(ConnectionActions.Closing);
         });
 
         test('can connect to server', () => {
             MockedNet.Socket.mockReturnValue(socket as any);
-            connection.connect(manager);
+            connection.connect();
             expect(MockedNet.Socket).toHaveBeenCalledTimes(1);
+            expect(connection['action']).toBe(ConnectionActions.Connecting);
         });
+
+        test('checks if connection is ready to send', () => {
+            connection['socket'] = socket;
+            expect(connection.readyToSend()).toBe(true);
+        });
+
     });
 
     describe('SecureConnection', () => {
@@ -89,22 +92,24 @@ describe('Connection', () => {
         });
 
         test('initializes with provided options and SSL options', () => {
-            // @ts-ignore
-            expect(connection.host).toBe(sslOptions.host);
-            // @ts-ignore
-            expect(connection.port).toBe(sslOptions.port);
-            // @ts-ignore
-            expect(connection.secureContextOptions.key).toBeDefined();
-            // @ts-ignore
-            expect(connection.secureContextOptions.cert).toBeDefined();
-            // @ts-ignore
-            expect(connection.secureContextOptions.ca).toBeDefined();
+            expect(connection['host']).toBe(sslOptions.host);
+            expect(connection['port']).toBe(sslOptions.port);
+            expect(connection['secureContextOptions'].key).toBeDefined();
+            expect(connection['secureContextOptions'].cert).toBeDefined();
+            expect(connection['secureContextOptions'].ca).toBeDefined();
         });
 
         test('can connect to secure server', () => {
             MockedTls.connect.mockReturnValue(socket as any);
-            connection.connect(manager);
+            connection.connect();
             expect(MockedTls.connect).toHaveBeenCalledTimes(1);
+            expect(connection['action']).toBe(ConnectionActions.Connecting);
         });
+
+        test('checks if secure```javascript connection is ready to send', () => {
+            connection['socket'] = socket;
+            expect(connection.readyToSend()).toBe(true);
+        });
+
     });
 });

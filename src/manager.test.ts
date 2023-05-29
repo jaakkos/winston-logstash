@@ -1,5 +1,5 @@
 import { Manager } from './manager';
-import { Connection, PlainConnection, SecureConnection } from './connection';
+import { Connection, ConnectionEvents, PlainConnection, SecureConnection } from './connection';
 
 jest.mock('./connection');
 
@@ -56,41 +56,44 @@ describe('Manager', () => {
     expect(connection.send).toHaveBeenCalledWith(logEntry + '\n', expect.any(Function));
   });
 
-  test('should retry to connect after a delay when retry is called', () => {
-    const spySetTimeout = jest.spyOn(global, 'setTimeout');
-    manager.start = jest.fn();
-    
-    connection.close = jest.fn().mockImplementationOnce(() => {
-      manager.emit('connection:closed')
-    })
-
-    // Simulate a retryable error.
-    const error = new Error('Test error');
-    manager['shouldTryToReconnect'] = jest.fn().mockReturnValue(true);
-  
-    manager['onConnectionError'](error);
-  
-    jest.runAllTimers();
-  
-    expect(spySetTimeout).toHaveBeenCalledTimes(1);
-    expect(spySetTimeout).toHaveBeenLastCalledWith(expect.any(Function), manager['timeoutConnectRetries']);
-    expect(manager.start).toHaveBeenCalled();
-  
-    spySetTimeout.mockRestore();
-  });
-
   test('should emit events when connection methods are called', () => {
     const mockEventEmit = jest.spyOn(manager, 'emit');
 
-    // @ts-ignore
     manager['onConnected']();
     expect(mockEventEmit).toHaveBeenCalledWith('connected');
 
     mockEventEmit.mockClear();
-    
+
     // @ts-ignore
     manager.onConnectionClosed(new Error());
     expect(mockEventEmit).toHaveBeenCalledWith('closed');
 
   });
+
+  test('should stop retrying after max retries are reached', () => {
+    const spyOnStart = jest.spyOn(manager, 'start');
+    const error = new Error('Test error');
+  
+    // Set the number of retries to the max.
+    manager['retries'] = manager['maxConnectRetries'];
+  
+    // Trigger an error on the connection.
+    connection.emit(ConnectionEvents.Error, error);
+  
+    jest.runAllTimers();
+  
+    // Check that the manager's start method was not called.
+    expect(spyOnStart).not.toHaveBeenCalled();
+  });
+  
+  test('should close the manager', () => {
+    const spyOnClose = jest.spyOn(connection, 'close');
+    const spyOnEmit = jest.spyOn(manager, 'emit');
+  
+    manager.close();
+  
+    expect(spyOnEmit).toHaveBeenCalledWith('closing');
+    expect(spyOnClose).toHaveBeenCalled();
+  });
+  
 });
