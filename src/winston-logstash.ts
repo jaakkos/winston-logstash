@@ -8,6 +8,7 @@ import {Transport} from "winston";
 const common = require('winston/lib/winston/common');
 import { Manager } from './manager';
 import { LogstashTransportOptions } from "./types";
+import { IConnection, PlainConnection, SecureConnection } from "./connection";
 
 export class Logstash extends Transport {
   private node_name: string
@@ -15,6 +16,7 @@ export class Logstash extends Transport {
   private label: string
   private meta_defaults: object
   private manager: Manager
+  private connection: IConnection;
 
   constructor(options: LogstashTransportOptions) {
     super(options);
@@ -25,7 +27,8 @@ export class Logstash extends Transport {
     this.label = options.label || this.node_name;
     this.meta_defaults = Object.assign({}, options.meta);
 
-    this.manager = new Manager(options);
+    this.connection = options.ssl_enable ? new SecureConnection(options) : new PlainConnection(options);
+    this.manager = new Manager(options, this.connection);
     this.manager.on('error', this.onError.bind(this));
     this.manager.start();
   }

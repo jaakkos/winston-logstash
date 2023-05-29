@@ -5,14 +5,14 @@
  *
  */
 
-import {Socket} from 'net'
-import {readFileSync} from 'fs'
+import { Socket } from 'net'
+import { readFileSync } from 'fs'
 import tls from 'tls';
 import { WinstonModuleTransportOptions } from 'winston';
-import { Manager } from './manager';
 import { LogstashTransportSSLOptions } from './types';
+import { EventEmitter } from 'events';
 
-enum ConnectionActions {
+export enum ConnectionActions {
   Initializing = "Initializing",
   Connecting = "Connecting",
   Closing = "Closing",
@@ -20,45 +20,60 @@ enum ConnectionActions {
   HandlingError = "HandlingError"
 }
 
-export class Connection {
+export enum ConnectionEvents {
+  Connected = "connection:connected",
+  Closed = "connection:closed",
+  ClosedByServer = "connection:closed:by-server",
+  Error = "connection:error",
+  Timeout = "connection:timeout",
+  Drain = "connection:drain"
+}
+
+export interface IConnection extends EventEmitter {
+  connect(): void;
+  close(): void;
+  send(message: string, callback: Function): boolean;
+  readyToSend(): boolean;
+}
+
+export abstract class Connection extends EventEmitter implements IConnection {
   protected socket: Socket | undefined;
   protected host: string;
   protected port: number;
-  protected manager: Manager;
   protected action: ConnectionActions;
 
-  constructor(options: WinstonModuleTransportOptions, manager: Manager) {
+  constructor(options: WinstonModuleTransportOptions) {
+    super();
     this.action = ConnectionActions.Initializing;
-    this.manager = manager;
     this.host = options?.host ?? '127.0.0.1';
     this.port = options?.port ?? 28777;
   }
 
   private socketOnError(error: Error) {
     this.action = ConnectionActions.HandlingError;
-    this.manager.emit('connection:error', error);
+    this.emit(ConnectionEvents.Error, error);
   }
 
   private socketOnTimeout() {
     this.action = ConnectionActions.HandlingError;
-    this.manager.emit('connection:timeout', this.socket?.readyState);
+    this.emit(ConnectionEvents.Timeout, this.socket?.readyState);
   }
 
   protected socketOnConnect() {
     this.socket?.setKeepAlive(true, 60 * 1000);
     this.action = ConnectionActions.Tranferring;
-    this.manager.emit('connection:connected');
+    this.emit(ConnectionEvents.Connected);
   }
 
-  protected socketOnDrain() {
-    this.manager.emit('connection:drain');
+  private socketOnDrain() {
+    this.emit(ConnectionEvents.Drain);
   }
 
   private socketOnClose(error: Error) {
     if (this.action === ConnectionActions.Closing) {
-      this.manager.emit('connection:closed', error);
+      this.emit(ConnectionEvents.Closed, error);
     } else {
-      this.manager.emit('connection:closed:by-server', error);
+      this.emit(ConnectionEvents.ClosedByServer, error);
     }
   }
 
@@ -69,17 +84,18 @@ export class Connection {
     socket.once('close', this.socketOnClose.bind(this));
   }
 
+
   close() {
     this.action = ConnectionActions.Closing;
     this.socket?.removeAllListeners();
     this.socket?.destroy();
-    this.manager.emit('connection:closed');
+    this.emit(ConnectionEvents.Closed);
   }
 
   send(message: string, writeCallback: (error?: Error) => void): boolean {
     return this.socket?.write(Buffer.from(message), writeCallback) === true;
   }
-
+  
   readyToSend(): boolean {
     return this.socket?.readyState === 'open';
   }
@@ -92,17 +108,21 @@ export class Connection {
 export class PlainConnection extends Connection {
   connect() {
     super.connect();
-    this.socket = new Socket();
-    super.addEventListeners(this.socket);
-    this.socket.on('connect', super.socketOnConnect.bind(this));
-    this.socket.connect(this.port, this.host);
+    try {
+      this.socket = new Socket();
+      super.addEventListeners(this.socket);
+      this.socket.once('connect', super.socketOnConnect.bind(this));
+      this.socket.connect(this.port, this.host);
+    } catch (error) {
+      this.emit(ConnectionEvents.Error, error);
+    }
   }
 }
 
 export class SecureConnection extends Connection {
   private secureContextOptions: tls.ConnectionOptions;
-  constructor(options: WinstonModuleTransportOptions, manager: Manager) {
-    super(options, manager);
+  constructor(options: WinstonModuleTransportOptions) {
+    super(options);
     this.secureContextOptions =
       SecureConnection.createSecureContextOptions(options as LogstashTransportSSLOptions);
   }
@@ -115,7 +135,7 @@ export class SecureConnection extends Connection {
     const rejectUnauthorized = options.rejectUnauthorized;
 
     const secureContextOptions = {
-      key: sslKey && readFileSync(sslKey) ,
+      key: sslKey && readFileSync(sslKey),
       cert: sslCert && readFileSync(sslCert),
       passphrase: sslPassphrase || undefined,
       rejectUnauthorized: rejectUnauthorized!,
@@ -127,10 +147,14 @@ export class SecureConnection extends Connection {
 
   connect() {
     super.connect();
-    this.socket = tls.connect(this.port,
+    try {
+      this.socket = tls.connect(this.port,
         this.host,
         this.secureContextOptions);
-    super.addEventListeners(this.socket);
-    this.socket.on('secureConnect', super.socketOnConnect.bind(this));
+      super.addEventListeners(this.socket);
+      this.socket.once('secureConnect', super.socketOnConnect.bind(this));
+    } catch (error) {
+      this.emit(ConnectionEvents.Error, error);
+    }
   }
 }

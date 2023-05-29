@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import timekeeper from 'timekeeper';
 import winston, { LoggerInstance } from 'winston';
 
-export const sslFilePath = (filename: string) => (__dirname + '/../test/support/ssl/' + filename)
+export const sslFilePath = (filename: string) => (__dirname + '/support/ssl/' + filename)
 
 const freezedTime = new Date(1330688329321);
 const port = 28777;
