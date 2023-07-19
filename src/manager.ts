@@ -20,11 +20,20 @@ export class Manager extends EventEmitter {
   private timeoutConnectRetries: number;
   private retryTimeout?: ReturnType<typeof setTimeout> = undefined;
 
+  private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>
+
   constructor(options: LogstashTransportOptions, connection: IConnection) {
     super();
     this.options = options;
     this.connection = connection;
     this.logQueue = new Array();
+
+    this.connectionCallbacks.set(ConnectionEvents.Connected, this.onConnected.bind(this));
+    this.connectionCallbacks.set(ConnectionEvents.Closed, this.onConnectionClosed.bind(this));
+    this.connectionCallbacks.set(ConnectionEvents.ClosedByServer, this.onConnectionError.bind(this));
+    this.connectionCallbacks.set(ConnectionEvents.Error, this.onConnectionError.bind(this));
+    this.connectionCallbacks.set(ConnectionEvents.Timeout, this.onConnectionError.bind(this));
+    this.connectionCallbacks.set(ConnectionEvents.Drain, this.flush.bind(this));
 
     // Connection retry attributes
     this.retries = 0;
@@ -33,21 +42,21 @@ export class Manager extends EventEmitter {
   }
 
   private addEventListeners() {
-    this.connection.once(ConnectionEvents.Connected, this.onConnected.bind(this));
-    this.connection.once(ConnectionEvents.Closed, this.onConnectionClosed.bind(this));
-    this.connection.once(ConnectionEvents.ClosedByServer, this.onConnectionError.bind(this));
-    this.connection.once(ConnectionEvents.Error, this.onConnectionError.bind(this));
-    this.connection.once(ConnectionEvents.Timeout, this.onConnectionError.bind(this));
-    this.connection.on(ConnectionEvents.Drain, this.flush.bind(this));
+    this.connection.once(ConnectionEvents.Connected, this.connectionCallbacks.get(ConnectionEvents.Connected)!);
+    this.connection.once(ConnectionEvents.Closed, this.connectionCallbacks.get(ConnectionEvents.Closed)!);
+    this.connection.once(ConnectionEvents.ClosedByServer, this.connectionCallbacks.get(ConnectionEvents.ClosedByServer)!);
+    this.connection.once(ConnectionEvents.Error, this.connectionCallbacks.get(ConnectionEvents.Error)!);
+    this.connection.once(ConnectionEvents.Timeout, this.connectionCallbacks.get(ConnectionEvents.Timeout)!);
+    this.connection.on(ConnectionEvents.Drain, this.connectionCallbacks.get(ConnectionEvents.Drain)!);
   }
 
   private removeEventListeners() {
-    this.connection.off(ConnectionEvents.Connected, this.onConnected.bind(this));
-    this.connection.off(ConnectionEvents.Closed, this.onConnectionClosed.bind(this));
-    this.connection.off(ConnectionEvents.ClosedByServer, this.onConnectionError.bind(this));
-    this.connection.off(ConnectionEvents.Error, this.onConnectionError.bind(this));
-    this.connection.off(ConnectionEvents.Timeout, this.onConnectionError.bind(this));
-    this.connection.off(ConnectionEvents.Drain, this.flush.bind(this));
+    this.connection.off(ConnectionEvents.Connected, this.connectionCallbacks.get(ConnectionEvents.Connected)!);
+    this.connection.off(ConnectionEvents.Closed, this.connectionCallbacks.get(ConnectionEvents.Closed)!);
+    this.connection.off(ConnectionEvents.ClosedByServer, this.connectionCallbacks.get(ConnectionEvents.ClosedByServer)!);
+    this.connection.off(ConnectionEvents.Error, this.connectionCallbacks.get(ConnectionEvents.Error)!);
+    this.connection.off(ConnectionEvents.Timeout, this.connectionCallbacks.get(ConnectionEvents.Timeout)!);
+    this.connection.off(ConnectionEvents.Drain, this.connectionCallbacks.get(ConnectionEvents.Drain)!);
   }
 
   private onConnected() {
