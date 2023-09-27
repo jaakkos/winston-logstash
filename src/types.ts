@@ -10,7 +10,7 @@ import { GenericTextTransportOptions, GenericTransportOptions } from "winston";
 export type LogEntry = [String, Function];
 export type LogEntries = [LogEntry];
 
-interface LogstashTransportSSLOptions {
+export interface LogstashTransportSSLOptions {
   ssl_key?: string
   ssl_cert?: string
   ca?: string
@@ -18,7 +18,7 @@ interface LogstashTransportSSLOptions {
   rejectUnauthorized?: boolean
 }
 
-interface LogstashTransportOptions extends GenericTransportOptions,
+export interface LogstashTransportOptions extends GenericTransportOptions,
   GenericTextTransportOptions, LogstashTransportSSLOptions {
   node_name?: string;
   meta?: Object
