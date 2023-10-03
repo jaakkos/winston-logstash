@@ -8,8 +8,7 @@
 import { Socket } from 'net'
 import { readFileSync } from 'fs'
 import tls from 'tls';
-import { WinstonModuleTransportOptions } from 'winston';
-import { LogstashTransportSSLOptions } from './types';
+import { ConnectionOptions, SecureConnectionOptions } from './types';
 import { EventEmitter } from 'events';
 
 export enum ConnectionActions {
@@ -42,7 +41,7 @@ export abstract class Connection extends EventEmitter implements IConnection {
   protected port: number;
   protected action: ConnectionActions;
 
-  constructor(options: WinstonModuleTransportOptions) {
+  constructor(options: ConnectionOptions) {
     super();
     this.action = ConnectionActions.Initializing;
     this.host = options?.host ?? '127.0.0.1';
@@ -121,13 +120,13 @@ export class PlainConnection extends Connection {
 
 export class SecureConnection extends Connection {
   private secureContextOptions: tls.ConnectionOptions;
-  constructor(options: WinstonModuleTransportOptions) {
+  constructor(options: SecureConnectionOptions) {
     super(options);
     this.secureContextOptions =
-      SecureConnection.createSecureContextOptions(options as LogstashTransportSSLOptions);
+      SecureConnection.createSecureContextOptions(options);
   }
 
-  static createSecureContextOptions(options: LogstashTransportSSLOptions): tls.ConnectionOptions {
+  static createSecureContextOptions(options: SecureConnectionOptions): tls.ConnectionOptions {
     const sslKey = options.ssl_key;
     const sslCert = options.ssl_cert;
     const ca = options.ca;

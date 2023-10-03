@@ -1,7 +1,5 @@
 module.exports = {
   presets: ['@babel/preset-typescript', '@babel/preset-env'],
-  ignore: ['src/winston-logstash.test.ts',
-    'src/winston-logstash-latest.test.ts',
-    'src/connection.test.ts', 'src/manager.test.ts'],
+  ignore: ['src/**/*.test.ts', 'src/**/types.ts'],
   targets: 'node 6',
 };

@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
-    "noEmit": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
     "target": "ES5",
- }
+    "baseUrl": ".",
+    "outDir": "lib"
+  },
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.test.ts"
+  ]
 }

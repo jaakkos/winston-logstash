@@ -14,7 +14,7 @@ import { IConnection, PlainConnection, SecureConnection } from "./connection";
 // Inherit from `winston-transport` so you can take advantage
 // of the base functionality and `.exceptions.handle()`.
 //
-module.exports = class LogstashTransport extends Transport {
+class LogstashTransport extends Transport {
   private manager: Manager;
   private connection: IConnection;
   public name: string;
@@ -47,3 +47,5 @@ module.exports = class LogstashTransport extends Transport {
     this.manager.close();
   }
 };
+
+export = LogstashTransport;
