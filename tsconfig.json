@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "noEmit": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./types",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,

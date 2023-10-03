@@ -97,10 +97,17 @@ describe('Manager', () => {
   });
 
   test('should retry with exponential backoff', () => {
-    const manager = new Manager({
-      ssl_enable: false,
-      retryStrategy: { strategy: 'exponentialBackoff', maxConnectRetries: -1 },
-    }, connection);
+    const manager = new Manager(
+      {
+        ssl_enable: false,
+        retryStrategy: {
+          strategy: 'exponentialBackoff',
+          maxConnectRetries: -1,
+          maxDelayBeforeRetryMs: 120000,
+        },
+      },
+      connection,
+    );
 
     // Add connection listeners.
     manager.start();
