@@ -3,29 +3,38 @@
 /// <reference types="node" />
 declare module "types" {
     import { GenericTextTransportOptions, GenericTransportOptions } from "winston";
+    import { TransportStreamOptions } from "winston-transport";
     export type LogEntry = [String, Function];
     export type LogEntries = [LogEntry];
-    export interface LogstashTransportSSLOptions {
+    export interface ConnectionOptions {
+        host?: string;
+        port?: number;
+    }
+    export interface ConnectionManagerOptions {
+        max_connect_retries?: number;
+        timeout_connect_retries?: number;
+    }
+    export interface SecureConnectionOptions extends ConnectionOptions {
         ssl_key?: string;
         ssl_cert?: string;
         ca?: string;
         ssl_passphrase?: string;
         rejectUnauthorized?: boolean;
     }
-    export interface LogstashTransportOptions extends GenericTransportOptions, GenericTextTransportOptions, LogstashTransportSSLOptions {
+    export interface InstanceOptions extends ConnectionManagerOptions, SecureConnectionOptions {
+        ssl_enable?: Boolean;
+    }
+    export interface LogstashOptions extends GenericTransportOptions, GenericTextTransportOptions, InstanceOptions {
         node_name?: string;
         meta?: Object;
-        ssl_enable?: Boolean;
-        retries?: number;
-        max_connect_retries?: number;
-        timeout_connect_retries?: number;
+    }
+    export interface LogstashTransportOptions extends TransportStreamOptions, InstanceOptions {
     }
 }
 declare module "connection" {
     import { Socket } from 'net';
     import tls from 'tls';
-    import { WinstonModuleTransportOptions } from 'winston';
-    import { LogstashTransportSSLOptions } from "types";
+    import { ConnectionOptions, SecureConnectionOptions } from "types";
     import { EventEmitter } from 'events';
     export enum ConnectionActions {
         Initializing = "Initializing",
@@ -53,7 +62,7 @@ declare module "connection" {
         protected host: string;
         protected port: number;
         protected action: ConnectionActions;
-        constructor(options: WinstonModuleTransportOptions);
+        constructor(options: ConnectionOptions);
         private socketOnError;
         private socketOnTimeout;
         protected socketOnConnect(): void;
@@ -70,15 +79,15 @@ declare module "connection" {
     }
     export class SecureConnection extends Connection {
         private secureContextOptions;
-        constructor(options: WinstonModuleTransportOptions);
-        static createSecureContextOptions(options: LogstashTransportSSLOptions): tls.ConnectionOptions;
+        constructor(options: SecureConnectionOptions);
+        static createSecureContextOptions(options: SecureConnectionOptions): tls.ConnectionOptions;
         connect(): void;
     }
 }
 declare module "manager" {
     import { IConnection } from "connection";
     import { EventEmitter } from 'events';
-    import { LogstashTransportOptions } from "types";
+    import { ConnectionManagerOptions } from "types";
     export class Manager extends EventEmitter {
         private connection;
         private logQueue;
@@ -88,7 +97,7 @@ declare module "manager" {
         private timeoutConnectRetries;
         private retryTimeout?;
         private connectionCallbacks;
-        constructor(options: LogstashTransportOptions, connection: IConnection);
+        constructor(options: ConnectionManagerOptions, connection: IConnection);
         private addEventListeners;
         private removeEventListeners;
         private onConnected;
@@ -120,7 +129,7 @@ declare module "winston-logstash-latest" {
 }
 declare module "winston-logstash" {
     import { Transport } from "winston";
-    import { LogstashTransportOptions } from "types";
+    import { LogstashOptions } from "types";
     export class Logstash extends Transport {
         private node_name;
         private json;
@@ -128,7 +137,7 @@ declare module "winston-logstash" {
         private meta_defaults;
         private manager;
         private connection;
-        constructor(options: LogstashTransportOptions);
+        constructor(options: LogstashOptions);
         log(level: any, msg: string, meta: Object, callback: Function): any;
         onError(error: Error): void;
         close(): void;

@@ -7,14 +7,14 @@
 
 import { IConnection, ConnectionEvents } from './connection'
 import { EventEmitter } from 'events';
-import { LogstashTransportOptions, LogEntry } from './types';
+import { ConnectionManagerOptions } from './types';
 
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 
 export class Manager extends EventEmitter {
   private connection: IConnection
   private logQueue: Array<[string, Function]>;
-  private options: LogstashTransportOptions;
+  private options: ConnectionManagerOptions;
   private retries: number = -1;
   private maxConnectRetries: number;
   private timeoutConnectRetries: number;
@@ -22,7 +22,7 @@ export class Manager extends EventEmitter {
 
   private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>
 
-  constructor(options: LogstashTransportOptions, connection: IConnection) {
+  constructor(options: ConnectionManagerOptions, connection: IConnection) {
     super();
     this.options = options;
     this.connection = connection;
