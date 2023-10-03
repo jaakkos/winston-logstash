@@ -112,20 +112,6 @@ logger.on('error', (error) => {
 
 See documentation from [docs/configuration](docs/configuration.md)
 
-### How to keep the connection open while Logstash is restarting?
-
-It's possible to set max_connect_retries to -1 (infinite) so the client keeps trying to connect to the Logstash. So when Logstash is restarted the retry logic will reconnect when it comes back online.
-
-``` js
-    const logger = winston.createLogger({
-      transports: [
-        new LogstashTransport({
-              ...
-               max_connect_retries: -1
-              ...
-              })]});
-```
-
 ## Run Tests
 
 ```shell

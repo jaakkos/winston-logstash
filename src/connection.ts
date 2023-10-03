@@ -88,14 +88,17 @@ export abstract class Connection extends EventEmitter implements IConnection {
   close() {
     this.action = ConnectionActions.Closing;
     this.socket?.removeAllListeners();
+    // Try to close the socket gracefully before destroying.
+    this.socket?.end();
     this.socket?.destroy();
+    this.socket = undefined;
     this.emit(ConnectionEvents.Closed);
   }
 
   send(message: string, writeCallback: (error?: Error) => void): boolean {
     return this.socket?.write(Buffer.from(message), writeCallback) === true;
   }
-  
+
   readyToSend(): boolean {
     return this.socket?.readyState === 'open';
   }

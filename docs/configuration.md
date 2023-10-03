@@ -6,13 +6,15 @@
 * `port`
   * The host port to connect.
   * Default: `28777`
-* `max_connect_retries`
-  * Max number of attempts to reconnect to logstash before going into silence.
-  * `-1` means retry forever.
-  * Default: `4`
-* `timeout_connect_retries`
-  * The number of ms between each retry for a reconnect to logstash .
-  * Default: `100`
+* `retryStrategy`
+  * What strategy to use to retry when the connection encounters an error.
+  * Consists of an object in one of two formats:
+    * Exponential backoff: start with a short timeout, and then retry with a longer timeout with each failure.
+      * `{ strategy: 'exponentialBackoff', maxConnectRetries: number, maxDelayBeforeRetryMs: number }`
+    * Fixed delay: retry after a fixed delay each time.
+      * `{ strategy: 'fixedDelay', maxConnectRetries: number, delayBeforeRetryMs: number }`
+  * You can set `maxConnectRetries: -1` to have no limit on the number of retries.
+  * Default `{ strategy: 'exponentialBackoff', maxConnectRetries: -1, maxDelayBeforeRetryMs: 120000 }`
 * `ssl_enable`
   * Enable SSL transfer of logs to logstash.
   * Default: `false`
