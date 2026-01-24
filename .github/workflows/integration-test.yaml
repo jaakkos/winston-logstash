@@ -1,5 +1,8 @@
 name: Integration tests with Logstash instance
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
