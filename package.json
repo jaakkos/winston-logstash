@@ -1,6 +1,6 @@
 {
   "name": "winston-logstash",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
   "types": "./lib/index.d.ts",
