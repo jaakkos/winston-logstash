@@ -7,17 +7,18 @@
 
 import { IConnection, ConnectionEvents } from './connection'
 import { EventEmitter } from 'events';
-import { ConnectionManagerOptions } from './types';
+import { ConnectionManagerOptions, RetryStrategy } from './types';
 
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
+const DEFAULT_INITIAL_DELAY_MS = 100;
 
 export class Manager extends EventEmitter {
   private connection: IConnection
   private logQueue: Array<[string, Function]>;
   private options: ConnectionManagerOptions;
   private retries: number = -1;
-  private maxConnectRetries: number;
-  private timeoutConnectRetries: number;
+  private readonly retryStrategy: RetryStrategy;
+  private nextRetryDelayMs: number = DEFAULT_INITIAL_DELAY_MS;
   private retryTimeout?: ReturnType<typeof setTimeout> = undefined;
 
   private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>
@@ -26,7 +27,7 @@ export class Manager extends EventEmitter {
     super();
     this.options = options;
     this.connection = connection;
-    this.logQueue = new Array();
+    this.logQueue = [];
 
     this.connectionCallbacks.set(ConnectionEvents.Connected, this.onConnected.bind(this));
     this.connectionCallbacks.set(ConnectionEvents.Closed, this.onConnectionClosed.bind(this));
@@ -37,8 +38,23 @@ export class Manager extends EventEmitter {
 
     // Connection retry attributes
     this.retries = 0;
-    this.maxConnectRetries = options?.max_connect_retries ?? 4;
-    this.timeoutConnectRetries = options?.timeout_connect_retries ?? 100;
+
+    // Initialize retry strategy: explicit retryStrategy takes precedence,
+    // otherwise use legacy options converted to fixedDelay (maintains backward compatibility)
+    if (options?.retryStrategy) {
+      this.retryStrategy = options.retryStrategy;
+      // Set initial delay for exponential backoff
+      if (this.retryStrategy.strategy === 'exponentialBackoff') {
+        this.nextRetryDelayMs = this.retryStrategy.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS;
+      }
+    } else {
+      // Legacy behavior: fixed delay with provided or default values
+      this.retryStrategy = {
+        strategy: 'fixedDelay',
+        maxConnectRetries: options?.max_connect_retries ?? 4,
+        delayBeforeRetryMs: options?.timeout_connect_retries ?? 100,
+      };
+    }
   }
 
   private addEventListeners() {
@@ -62,6 +78,10 @@ export class Manager extends EventEmitter {
   private onConnected() {
     this.emit('connected');
     this.retries = 0;
+    // Reset exponential backoff delay on successful connection
+    if (this.retryStrategy.strategy === 'exponentialBackoff') {
+      this.nextRetryDelayMs = this.retryStrategy.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS;
+    }
     this.flush();
   }
 
@@ -77,16 +97,11 @@ export class Manager extends EventEmitter {
   }
 
   private shouldTryToReconnect(error: Error) {
-    if (this.isRetryableError(error) === true) {
-      if (this.maxConnectRetries < 0 ||
-        this.retries < this.maxConnectRetries) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
+    if (this.isRetryableError(error)) {
+      const { maxConnectRetries } = this.retryStrategy;
+      return maxConnectRetries < 0 || this.retries < maxConnectRetries;
     }
+    return false;
   }
 
   private onConnectionError(error: Error) {
@@ -111,10 +126,23 @@ export class Manager extends EventEmitter {
     const self = this;
     this.connection.once(ConnectionEvents.Closed, () => {
       self.removeEventListeners();
+
+      // Calculate retry delay based on strategy
+      let retryDelayMs: number;
+      if (self.retryStrategy.strategy === 'exponentialBackoff') {
+        retryDelayMs = self.nextRetryDelayMs;
+        // Double the delay for next time, capped at max
+        self.nextRetryDelayMs = Math.min(
+          self.nextRetryDelayMs * 2,
+          self.retryStrategy.maxDelayBeforeRetryMs
+        );
+      } else {
+        retryDelayMs = self.retryStrategy.delayBeforeRetryMs;
+      }
+
       self.retryTimeout = setTimeout(() => {
         self.start();
-      },
-        self.timeoutConnectRetries);
+      }, retryDelayMs);
     });
     this.connection.close();
   }

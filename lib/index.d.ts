@@ -10,6 +10,37 @@ declare module "types" {
     export interface ConnectionManagerOptions {
         max_connect_retries?: number;
         timeout_connect_retries?: number;
+        retryStrategy?: RetryStrategy;
+    }
+    /**
+     * Retry strategy configuration for connection failures.
+     * Choose between exponential backoff (recommended for production) or fixed delay.
+     */
+    export type RetryStrategy = ExponentialBackoffStrategy | FixedDelayStrategy;
+    /**
+     * Exponential backoff: start with a short delay, double it each time.
+     * Good for production - quick recovery for transient issues, avoids
+     * hammering the server when it's overloaded.
+     */
+    export interface ExponentialBackoffStrategy {
+        strategy: 'exponentialBackoff';
+        /** How many times to retry before giving up. -1 for unlimited. */
+        maxConnectRetries: number;
+        /** Initial delay before first retry in ms. Default: 100 */
+        initialDelayMs?: number;
+        /** Maximum delay between retries in ms (caps exponential growth). */
+        maxDelayBeforeRetryMs: number;
+    }
+    /**
+     * Fixed delay: wait the same amount of time between each retry.
+     * This is the legacy behavior.
+     */
+    export interface FixedDelayStrategy {
+        strategy: 'fixedDelay';
+        /** How many times to retry before giving up. -1 for unlimited. */
+        maxConnectRetries: number;
+        /** How long to wait before each retry in ms. */
+        delayBeforeRetryMs: number;
     }
     export interface SecureConnectionOptions extends ConnectionOptions {
         ssl_key?: string;
@@ -92,8 +123,8 @@ declare module "manager" {
         private logQueue;
         private options;
         private retries;
-        private maxConnectRetries;
-        private timeoutConnectRetries;
+        private readonly retryStrategy;
+        private nextRetryDelayMs;
         private retryTimeout?;
         private connectionCallbacks;
         constructor(options: ConnectionManagerOptions, connection: IConnection);

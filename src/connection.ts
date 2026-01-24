@@ -87,7 +87,10 @@ export abstract class Connection extends EventEmitter implements IConnection {
   close() {
     this.action = ConnectionActions.Closing;
     this.socket?.removeAllListeners();
+    // Try to close the socket gracefully before destroying
+    this.socket?.end();
     this.socket?.destroy();
+    this.socket = undefined;
     this.emit(ConnectionEvents.Closed);
   }
 

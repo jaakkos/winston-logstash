@@ -22,6 +22,7 @@ beforeEach(() => {
     socket = new EventEmitter() as net.Socket & { emit: jest.Mock, readyState: string };
     socket.write = jest.fn().mockReturnValue(true);
     socket.removeAllListeners = jest.fn();
+    socket.end = jest.fn();
     socket.destroy = jest.fn();
     socket.connect = jest.fn().mockImplementation(() => {
         socket.emit('connect')
@@ -60,7 +61,9 @@ describe('Connection', () => {
             connection.close();
 
             expect(socket.removeAllListeners).toHaveBeenCalled();
+            expect(socket.end).toHaveBeenCalled();
             expect(socket.destroy).toHaveBeenCalled();
+            expect(connection['socket']).toBeUndefined();
             expect(connection['action']).toBe(ConnectionActions.Closing);
         });
 
