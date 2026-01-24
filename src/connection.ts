@@ -93,7 +93,7 @@ export abstract class Connection extends EventEmitter implements IConnection {
   }
 
   send(message: string, writeCallback: (error?: Error) => void): boolean {
-    return this.socket?.write(Buffer.from(message), writeCallback) === true;
+    return this.socket?.write(message, 'utf8', writeCallback) === true;
   }
   
   readyToSend(): boolean {

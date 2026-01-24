@@ -52,7 +52,7 @@ describe('Connection', () => {
             const result = connection.send(message, callback);
 
             expect(result).toBe(true);
-            expect(socket.write).toHaveBeenCalledWith(Buffer.from(message), callback);
+            expect(socket.write).toHaveBeenCalledWith(message, 'utf8', callback);
         });
 
         test('can close connection', () => {
