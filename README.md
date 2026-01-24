@@ -1,8 +1,9 @@
 # winston-logstash
 
 [![Build Status](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml/badge.svg)](https://github.com/jaakkos/winston-logstash/actions/workflows/build-test.yaml)
-
 [![Integration tests with Logstash instance](https://github.com/jaakkos/winston-logstash/actions/workflows/integration-test.yaml/badge.svg?branch=main)](https://github.com/jaakkos/winston-logstash/actions/workflows/integration-test.yaml)
+[![npm version](https://img.shields.io/npm/v/winston-logstash.svg)](https://www.npmjs.com/package/winston-logstash)
+[![node](https://img.shields.io/node/v/winston-logstash.svg)](https://www.npmjs.com/package/winston-logstash)
 
 A [Logstash TCP][0] transport for [winston][1].
 
@@ -135,8 +136,9 @@ It's possible to set max_connect_retries to -1 (infinite) so the client keeps tr
 ## Run integration tests with Logstash
 
 ```shell
-  cd test-bench/winston-3x
-  docker-compose up -d
+  cd test-bench/logstash
+  docker compose up -d
+  cd ../winston-3x
   npm test
 ```
 
