@@ -8,7 +8,7 @@
 
 A [Logstash TCP][0] transport for [winston][1].
 
-**Requirements:** Node.js >= 20
+**Requirements:** Node.js >= 18
 
 ## Usage
 
