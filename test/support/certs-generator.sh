@@ -39,7 +39,7 @@ openssl x509 -req -CAcreateserial -in `pwd`/test/support/ssl/client.csr \
   -CA `pwd`/test/support/ssl/ca.cert \
   -CAkey `pwd`/test/support/ssl/ca.key \
   -out `pwd`/test/support/ssl/client.cert \
-  -days 365 \
+  -days 3650 \
   -extfile `pwd`/test/support/ssl/csr.config
 
 echo "Generated CA certicate"
