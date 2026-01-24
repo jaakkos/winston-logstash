@@ -1,6 +1,6 @@
-import { Manager } from './manager';
-import { ConnectionEvents, PlainConnection } from './connection';
-import { RetryStrategy } from './types';
+import {Manager} from './manager';
+import {ConnectionEvents, PlainConnection} from './connection';
+import {RetryStrategy} from './types';
 
 jest.mock('./connection');
 
@@ -14,7 +14,7 @@ describe('Manager', () => {
     port: 12345,
     ssl_enable: false,
     max_connect_retries: 4,
-    timeout_connect_retries: 100
+    timeout_connect_retries: 100,
   };
 
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('Manager', () => {
   test('logs an entry', () => {
     const logEntry = 'test log entry';
     const callback = jest.fn();
-    
+
     manager.log(logEntry, callback);
 
     expect(manager['logQueue']).toHaveLength(1);
@@ -92,31 +92,30 @@ describe('Manager', () => {
     // @ts-ignore
     manager.onConnectionClosed(new Error());
     expect(mockEventEmit).toHaveBeenCalledWith('closed');
-
   });
 
   test('should stop retrying after max retries are reached', () => {
     const spyOnStart = jest.spyOn(manager, 'start');
     const error = new Error('Test error');
-  
+
     // Set the number of retries to the max.
     manager['retries'] = manager['retryStrategy'].maxConnectRetries;
-  
+
     // Trigger an error on the connection.
     connection.emit(ConnectionEvents.Error, error);
-  
+
     jest.runAllTimers();
-  
+
     // Check that the manager's start method was not called.
     expect(spyOnStart).not.toHaveBeenCalled();
   });
-  
+
   test('should close the manager', () => {
     const spyOnClose = jest.spyOn(connection, 'close');
     const spyOnEmit = jest.spyOn(manager, 'emit');
-  
+
     manager.close();
-  
+
     expect(spyOnEmit).toHaveBeenCalledWith('closing');
     expect(spyOnClose).toHaveBeenCalled();
   });
@@ -130,20 +129,20 @@ describe('Manager', () => {
   test('re-queues log entry when send fails with error', () => {
     const logEntry = 'test log entry';
     const callback = jest.fn();
-    
+
     // Mock send to call callback with an error
     let sendCallback: (error?: Error) => void;
     connection.send = jest.fn().mockImplementation((entry, cb) => {
       sendCallback = cb;
       return true;
     });
-    
+
     manager['logQueue'].push([logEntry, callback]);
     manager.flush();
-    
+
     // Simulate send error
     sendCallback!(new Error('Send failed'));
-    
+
     // Entry should be re-queued
     expect(manager['logQueue']).toHaveLength(1);
     expect(manager['logQueue'][0][0]).toBe(logEntry);
@@ -153,19 +152,19 @@ describe('Manager', () => {
   test('calls callback when send succeeds', () => {
     const logEntry = 'test log entry';
     const callback = jest.fn();
-    
+
     let sendCallback: (error?: Error) => void;
     connection.send = jest.fn().mockImplementation((entry, cb) => {
       sendCallback = cb;
       return true;
     });
-    
+
     manager['logQueue'].push([logEntry, callback]);
     manager.flush();
-    
+
     // Simulate successful send
     sendCallback!();
-    
+
     expect(callback).toHaveBeenCalled();
   });
 
@@ -177,29 +176,29 @@ describe('Manager', () => {
 
   test('shouldTryToReconnect returns false when max retries reached', () => {
     const error = new Error('Connection error');
-    
+
     manager['retries'] = manager['retryStrategy'].maxConnectRetries + 1;
-    
+
     expect(manager['shouldTryToReconnect'](error)).toBe(false);
   });
 
   test('shouldTryToReconnect returns true when under max retries', () => {
     const error = new Error('Connection error');
-    
+
     manager['retries'] = 0;
-    
+
     expect(manager['shouldTryToReconnect'](error)).toBe(true);
   });
 
   test('shouldTryToReconnect returns true with infinite retries', () => {
     const infiniteManager = new Manager({
       ...options,
-      max_connect_retries: -1
+      max_connect_retries: -1,
     }, connection);
-    
+
     const error = new Error('Connection error');
     infiniteManager['retries'] = 1000;
-    
+
     expect(infiniteManager['shouldTryToReconnect'](error)).toBe(true);
   });
 
@@ -209,12 +208,12 @@ describe('Manager', () => {
         strategy: 'exponentialBackoff',
         maxConnectRetries: -1,
         maxDelayBeforeRetryMs: 60000,
-      }
+      },
     }, connection);
-    
+
     const error = new Error('Connection error');
     backoffManager['retries'] = 10000;
-    
+
     expect(backoffManager['shouldTryToReconnect'](error)).toBe(true);
   });
 
@@ -225,15 +224,15 @@ describe('Manager', () => {
         maxConnectRetries: -1,
         initialDelayMs: 100,
         maxDelayBeforeRetryMs: 60000,
-      }
+      },
     }, connection);
-    
+
     // Simulate some retries that increased the delay
     backoffManager['nextRetryDelayMs'] = 6400;
-    
+
     // Simulate successful connection
     backoffManager['onConnected']();
-    
+
     // Delay should be reset to initial
     expect(backoffManager['nextRetryDelayMs']).toBe(100);
   });
@@ -245,19 +244,19 @@ describe('Manager', () => {
         maxConnectRetries: -1,
         initialDelayMs: 100,
         maxDelayBeforeRetryMs: 500,
-      }
+      },
     }, connection);
-    
+
     // Set delay to a high value that would exceed max when doubled
     backoffManager['nextRetryDelayMs'] = 400;
-    
+
     // Simulate retry logic (we test the calculation directly)
     const currentDelay = backoffManager['nextRetryDelayMs'];
     backoffManager['nextRetryDelayMs'] = Math.min(
       backoffManager['nextRetryDelayMs'] * 2,
-      500 // maxDelayBeforeRetryMs
+      500, // maxDelayBeforeRetryMs
     );
-    
+
     // Delay should be capped at 500
     expect(backoffManager['nextRetryDelayMs']).toBe(500);
   });
@@ -268,36 +267,36 @@ describe('Manager', () => {
 
   describe('Backward Compatibility', () => {
     test('legacy max_connect_retries only - uses default timeout', () => {
-      const manager = new Manager({ max_connect_retries: 10 }, connection);
+      const manager = new Manager({max_connect_retries: 10}, connection);
       expect(manager['retryStrategy']).toEqual<RetryStrategy>({
         strategy: 'fixedDelay',
         maxConnectRetries: 10,
-        delayBeforeRetryMs: 100,  // default
+        delayBeforeRetryMs: 100, // default
       });
     });
 
     test('legacy timeout_connect_retries only - uses default max retries', () => {
-      const manager = new Manager({ timeout_connect_retries: 500 }, connection);
+      const manager = new Manager({timeout_connect_retries: 500}, connection);
       expect(manager['retryStrategy']).toEqual<RetryStrategy>({
         strategy: 'fixedDelay',
-        maxConnectRetries: 4,  // default
+        maxConnectRetries: 4, // default
         delayBeforeRetryMs: 500,
       });
     });
 
     test('legacy max_connect_retries: -1 allows infinite retries', () => {
-      const manager = new Manager({ max_connect_retries: -1 }, connection);
+      const manager = new Manager({max_connect_retries: -1}, connection);
       manager['retries'] = 999999;
       expect(manager['shouldTryToReconnect'](new Error('test'))).toBe(true);
     });
 
     test('default behavior: stops after 4 retries', () => {
       const manager = new Manager({}, connection);
-      
+
       // After 4 retries, should stop
       manager['retries'] = 4;
       expect(manager['shouldTryToReconnect'](new Error('test'))).toBe(false);
-      
+
       // At 3 retries, should continue (0, 1, 2, 3 = 4 attempts allowed)
       manager['retries'] = 3;
       expect(manager['shouldTryToReconnect'](new Error('test'))).toBe(true);
@@ -305,17 +304,16 @@ describe('Manager', () => {
 
     test('retryStrategy takes precedence over legacy options', () => {
       const manager = new Manager({
-        max_connect_retries: 10,  // This should be ignored
-        timeout_connect_retries: 500,  // This should be ignored
+        max_connect_retries: 10, // This should be ignored
+        timeout_connect_retries: 500, // This should be ignored
         retryStrategy: {
           strategy: 'exponentialBackoff',
           maxConnectRetries: -1,
           maxDelayBeforeRetryMs: 60000,
-        }
+        },
       }, connection);
-      
+
       expect(manager['retryStrategy'].strategy).toBe('exponentialBackoff');
     });
   });
-  
 });

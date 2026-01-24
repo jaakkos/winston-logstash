@@ -5,10 +5,10 @@
  *
  */
 
-import Transport from "winston-transport";
-import { Manager } from './manager';
-import { LogstashTransportOptions } from "./types";
-import { IConnection, PlainConnection, SecureConnection } from "./connection";
+import Transport from 'winston-transport';
+import {Manager} from './manager';
+import {LogstashTransportOptions} from './types';
+import {IConnection, PlainConnection, SecureConnection} from './connection';
 
 /**
  * ANSI escape code regex pattern.

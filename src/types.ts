@@ -5,8 +5,8 @@
  *
  */
 
-import { GenericTextTransportOptions, GenericTransportOptions } from "winston";
-import { TransportStreamOptions } from "winston-transport";
+import {GenericTextTransportOptions, GenericTransportOptions} from 'winston';
+import {TransportStreamOptions} from 'winston-transport';
 
 export type LogEntry = [String, Function];
 export type LogEntries = [LogEntry];

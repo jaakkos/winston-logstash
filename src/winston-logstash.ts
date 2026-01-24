@@ -4,18 +4,18 @@
  * MIT LICENCE
  *
  */
-import {Transport} from "winston";
+import {Transport} from 'winston';
 const common = require('winston/lib/winston/common');
-import { Manager } from './manager';
-import { LogstashOptions } from "./types";
-import { IConnection, PlainConnection, SecureConnection } from "./connection";
+import {Manager} from './manager';
+import {LogstashOptions} from './types';
+import {IConnection, PlainConnection, SecureConnection} from './connection';
 
 export class Logstash extends Transport {
-  private node_name: string
-  private json: boolean = true
-  private label: string
-  private meta_defaults: object
-  private manager: Manager
+  private node_name: string;
+  private json: boolean = true;
+  private label: string;
+  private meta_defaults: object;
+  private manager: Manager;
   private connection: IConnection;
 
   constructor(options: LogstashOptions) {
@@ -39,8 +39,8 @@ export class Logstash extends Transport {
     }
 
     const logEntry = this.defaultTransform(level,
-        msg,
-        Object.assign({}, meta, this.meta_defaults));
+      msg,
+      Object.assign({}, meta, this.meta_defaults));
 
     this.manager.log(logEntry, () => {
       callback(null, true);
