@@ -32,7 +32,7 @@
     "@babel/core": "^7.28.6",
     "@babel/preset-env": "^7.28.6",
     "@babel/preset-typescript": "^7.28.5",
-    "@jest/globals": "^29.7.0",
+    "@jest/globals": "^30.2.0",
     "@types/jest": "^30.0.0",
     "auto-changelog": "^2.5.0",
     "chai": "^6.2.2",
