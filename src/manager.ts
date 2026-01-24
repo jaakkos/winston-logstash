@@ -5,15 +5,15 @@
  *
  */
 
-import { IConnection, ConnectionEvents } from './connection'
-import { EventEmitter } from 'events';
-import { ConnectionManagerOptions, RetryStrategy } from './types';
+import {IConnection, ConnectionEvents} from './connection';
+import {EventEmitter} from 'events';
+import {ConnectionManagerOptions, RetryStrategy} from './types';
 
 const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 const DEFAULT_INITIAL_DELAY_MS = 100;
 
 export class Manager extends EventEmitter {
-  private connection: IConnection
+  private connection: IConnection;
   private logQueue: Array<[string, Function]>;
   private options: ConnectionManagerOptions;
   private retries: number = -1;
@@ -21,7 +21,7 @@ export class Manager extends EventEmitter {
   private nextRetryDelayMs: number = DEFAULT_INITIAL_DELAY_MS;
   private retryTimeout?: ReturnType<typeof setTimeout> = undefined;
 
-  private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>
+  private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>;
 
   constructor(options: ConnectionManagerOptions, connection: IConnection) {
     super();
@@ -98,7 +98,7 @@ export class Manager extends EventEmitter {
 
   private shouldTryToReconnect(error: Error) {
     if (this.isRetryableError(error)) {
-      const { maxConnectRetries } = this.retryStrategy;
+      const {maxConnectRetries} = this.retryStrategy;
       return maxConnectRetries < 0 || this.retries < maxConnectRetries;
     }
     return false;
@@ -134,7 +134,7 @@ export class Manager extends EventEmitter {
         // Double the delay for next time, capped at max
         self.nextRetryDelayMs = Math.min(
           self.nextRetryDelayMs * 2,
-          self.retryStrategy.maxDelayBeforeRetryMs
+          self.retryStrategy.maxDelayBeforeRetryMs,
         );
       } else {
         retryDelayMs = self.retryStrategy.delayBeforeRetryMs;
@@ -179,7 +179,7 @@ export class Manager extends EventEmitter {
         const self = this;
         connectionIsDrained = this.connection.send(entry + '\n', (error?: Error) => {
           if (error) {
-            self.logQueue.unshift(logEntry)
+            self.logQueue.unshift(logEntry);
           } else {
             callback();
           }

@@ -5,27 +5,27 @@
  *
  */
 
-import { Socket } from 'net'
-import { readFileSync } from 'fs'
+import {Socket} from 'net';
+import {readFileSync} from 'fs';
 import tls from 'tls';
-import { ConnectionOptions, SecureConnectionOptions } from './types';
-import { EventEmitter } from 'events';
+import {ConnectionOptions, SecureConnectionOptions} from './types';
+import {EventEmitter} from 'events';
 
 export enum ConnectionActions {
-  Initializing = "Initializing",
-  Connecting = "Connecting",
-  Closing = "Closing",
-  Tranferring = "Transferring",
-  HandlingError = "HandlingError"
+  Initializing = 'Initializing',
+  Connecting = 'Connecting',
+  Closing = 'Closing',
+  Tranferring = 'Transferring',
+  HandlingError = 'HandlingError'
 }
 
 export enum ConnectionEvents {
-  Connected = "connection:connected",
-  Closed = "connection:closed",
-  ClosedByServer = "connection:closed:by-server",
-  Error = "connection:error",
-  Timeout = "connection:timeout",
-  Drain = "connection:drain"
+  Connected = 'connection:connected',
+  Closed = 'connection:closed',
+  ClosedByServer = 'connection:closed:by-server',
+  Error = 'connection:error',
+  Timeout = 'connection:timeout',
+  Drain = 'connection:drain'
 }
 
 export interface IConnection extends EventEmitter {
@@ -97,7 +97,7 @@ export abstract class Connection extends EventEmitter implements IConnection {
   send(message: string, writeCallback: (error?: Error) => void): boolean {
     return this.socket?.write(message, 'utf8', writeCallback) === true;
   }
-  
+
   readyToSend(): boolean {
     return this.socket?.readyState === 'open';
   }
@@ -144,7 +144,7 @@ export class SecureConnection extends Connection {
         '[winston-logstash] SSL verification is enabled but no CA certificate provided. ' +
         'Connection will fail if the server uses a self-signed certificate. ' +
         'Either provide a "ca" option with the CA certificate path, ' +
-        'or set "rejectUnauthorized: false" (not recommended for production).'
+        'or set "rejectUnauthorized: false" (not recommended for production).',
       );
     }
 
@@ -153,7 +153,7 @@ export class SecureConnection extends Connection {
       cert: sslCert && readFileSync(sslCert),
       passphrase: sslPassphrase || undefined,
       rejectUnauthorized: rejectUnauthorized,
-      ca: ca && readFileSync(ca)
+      ca: ca && readFileSync(ca),
     };
 
     return secureContextOptions;

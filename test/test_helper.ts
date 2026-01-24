@@ -1,16 +1,16 @@
-import net, { Socket } from 'net'
+import net, {Socket} from 'net';
 import tls from 'tls';
-import { readFileSync } from 'fs';
+import {readFileSync} from 'fs';
 import timekeeper from 'timekeeper';
-import winston, { LoggerInstance } from 'winston';
+import winston, {LoggerInstance} from 'winston';
 
-export const sslFilePath = (filename: string) => (__dirname + '/support/ssl/' + filename)
+export const sslFilePath = (filename: string) => (__dirname + '/support/ssl/' + filename);
 
 const freezedTime = new Date(1330688329321);
 const port = 28777;
 
 export function createTestServer(port: number, onData: Function) {
-  const server = net.createServer(function (socket: Socket) {
+  const server = net.createServer(function(socket: Socket) {
     socket.on('close', () => {
     });
     socket.on('data', (data: Buffer) => {
@@ -24,7 +24,7 @@ export function createTestServer(port: number, onData: Function) {
 }
 
 export function createTestServerWithRestart(port: number, onData: Function) {
-  const server = net.createServer(function (socket: Socket) {
+  const server = net.createServer(function(socket: Socket) {
     socket.on('open', () => {
 
     });
@@ -88,5 +88,5 @@ export function tearDown(logger: LoggerInstance, timekeeper: any, testServer: ne
     testServer.close(() => {
       resolve(true);
     });
-  })
+  });
 }

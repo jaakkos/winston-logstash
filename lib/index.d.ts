@@ -1,6 +1,6 @@
 declare module "types" {
-    import { GenericTextTransportOptions, GenericTransportOptions } from "winston";
-    import { TransportStreamOptions } from "winston-transport";
+    import { GenericTextTransportOptions, GenericTransportOptions } from 'winston';
+    import { TransportStreamOptions } from 'winston-transport';
     export type LogEntry = [String, Function];
     export type LogEntries = [LogEntry];
     export interface ConnectionOptions {
@@ -144,7 +144,7 @@ declare module "manager" {
     }
 }
 declare module "winston-logstash-latest" {
-    import Transport from "winston-transport";
+    import Transport from 'winston-transport';
     import { LogstashTransportOptions } from "types";
     class LogstashTransport extends Transport {
         private manager;
@@ -158,7 +158,7 @@ declare module "winston-logstash-latest" {
     export = LogstashTransport;
 }
 declare module "winston-logstash" {
-    import { Transport } from "winston";
+    import { Transport } from 'winston';
     import { LogstashOptions } from "types";
     export class Logstash extends Transport {
         private node_name;

@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, jest } from '@jest/globals';
+import {describe, expect, test, beforeEach, jest} from '@jest/globals';
 
 // Test the safeStringify functionality by importing the transport
 // and verifying it handles circular references
@@ -12,7 +12,7 @@ describe('winston-logstash-latest transport', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    
+
     // Setup mock manager
     mockManager = {
       on: jest.fn(),
@@ -20,12 +20,12 @@ describe('winston-logstash-latest transport', () => {
       log: jest.fn(),
       close: jest.fn(),
     };
-    
+
     // Mock the Manager constructor
     jest.doMock('./manager', () => ({
       Manager: jest.fn().mockImplementation(() => mockManager),
     }));
-    
+
     // Import after mocking
     LogstashTransport = require('./winston-logstash-latest');
   });
@@ -53,10 +53,10 @@ describe('winston-logstash-latest transport', () => {
     // Verify manager.log was called with a string
     expect(mockManager.log).toHaveBeenCalled();
     const loggedString = mockManager.log.mock.calls[0][0];
-    
+
     // Verify the logged string is valid JSON
     expect(() => JSON.parse(loggedString)).not.toThrow();
-    
+
     // Verify circular reference was replaced
     const parsed = JSON.parse(loggedString);
     expect(parsed.message).toBe('Test error');
@@ -112,7 +112,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     expect(parsed).toEqual(normalObj);
   });
 
@@ -124,7 +124,7 @@ describe('winston-logstash-latest transport', () => {
 
     // Create a shared object (same object referenced in multiple places)
     // This is NOT circular - it's just shared
-    const sharedMeta = { requestId: 'abc-123', timestamp: 1234567890 };
+    const sharedMeta = {requestId: 'abc-123', timestamp: 1234567890};
     const obj = {
       level: 'info',
       message: 'test',
@@ -137,7 +137,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     // Both should have the full object, NOT [Circular]
     expect(parsed.request).toEqual(sharedMeta);
     expect(parsed.response).toEqual(sharedMeta);
@@ -151,13 +151,13 @@ describe('winston-logstash-latest transport', () => {
     });
 
     // More complex shared reference scenario
-    const config = { host: 'localhost', port: 8080 };
+    const config = {host: 'localhost', port: 8080};
     const obj = {
       level: 'info',
       message: 'test',
       services: {
-        api: { name: 'api', config: config },
-        worker: { name: 'worker', config: config }, // Same config object
+        api: {name: 'api', config: config},
+        worker: {name: 'worker', config: config}, // Same config object
       },
     };
 
@@ -166,7 +166,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     // Both should have the full config object
     expect(parsed.services.api.config).toEqual(config);
     expect(parsed.services.worker.config).toEqual(config);
@@ -190,7 +190,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     // ANSI codes should be stripped
     expect(parsed.level).toBe('info');
     expect(parsed.message).toBe('Hello World');
@@ -218,7 +218,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     expect(parsed.meta.status).toBe('error');
     expect(parsed.meta.details.code).toBe('500');
   });
@@ -243,7 +243,7 @@ describe('winston-logstash-latest transport', () => {
 
     const loggedString = mockManager.log.mock.calls[0][0];
     const parsed = JSON.parse(loggedString);
-    
+
     expect(parsed.bold).toBe('Bold');
     expect(parsed.underline).toBe('Underline');
     expect(parsed.bgColor).toBe('Red Background');
