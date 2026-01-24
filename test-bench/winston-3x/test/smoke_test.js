@@ -4,31 +4,41 @@
 // `winston.transports.Logstash`
 //
 const net = require('net');
+const crypto = require('crypto');
 const winston = require('winston');
 const LogstashTransport =
   require('winston-logstash/lib/winston-logstash-latest');
 
-const assertClient = (port) => {
-  const client = new net.Socket();
+const assertClient = (port, expectedId) => {
+  return new Promise((resolve, reject) => {
+    const client = new net.Socket();
+    const timeout = setTimeout(() => {
+      client.destroy();
+      reject(new Error('Timeout waiting for message with id: ' + expectedId));
+    }, 10000);
 
-  return new Promise((resolve, rejects) => {
     client.connect(port, 'localhost', function() {
-      // console.log('Connected');
-      // client.write('Hello, server! Love, Client.');
+      // Connected
     });
 
     client.on('data', function(data) {
-      resolve(JSON.parse(data));
-      // console.log('Received: ' + data);
-      client.destroy(); // kill client after server's response
+      const message = JSON.parse(data);
+      // Only resolve if this is the message we're looking for
+      if (message.message && message.message.includes(expectedId)) {
+        clearTimeout(timeout);
+        resolve(message);
+        client.destroy();
+      }
+      // Otherwise keep listening for the right message
     });
 
     client.on('close', function() {
-      // console.log('Connection closed');
+      // Connection closed
     });
 
     client.on('error', (error) => {
-      rejects(error);
+      clearTimeout(timeout);
+      reject(error);
       client.destroy();
     });
   });
@@ -36,6 +46,9 @@ const assertClient = (port) => {
 
 describe('Ensure logstash is working', () => {
   it('should append for lines to file with secure logger', (done) => {
+    const uniqueId = crypto.randomUUID();
+    const expectMessage = 'secure logger: ' + uniqueId;
+
     const logger = winston.createLogger({
       transports: [
         new LogstashTransport({
@@ -51,8 +64,7 @@ describe('Ensure logstash is working', () => {
       ],
     });
 
-    const valueForAssertion = assertClient(9999);
-    const expectMessage = 'secure logger: ' + Date.now();
+    const valueForAssertion = assertClient(9999, uniqueId);
     logger.log('info', expectMessage);
 
     valueForAssertion.then((value) => {
@@ -60,10 +72,13 @@ describe('Ensure logstash is working', () => {
       expect(value.level).toEqual('info');
       logger.close();
       done();
-    });
+    }).catch(done);
   });
 
   it('should append for lines to file with unsecure logger', (done) => {
+    const uniqueId = crypto.randomUUID();
+    const expectMessage = 'unsecure logger: ' + uniqueId;
+
     const logger = winston.createLogger({
       transports: [
         new LogstashTransport({
@@ -79,8 +94,7 @@ describe('Ensure logstash is working', () => {
       ],
     });
 
-    const valueForAssertion = assertClient(9999);
-    const expectMessage = 'unsecure logger: ' + Date.now();
+    const valueForAssertion = assertClient(9999, uniqueId);
     logger.log('info', expectMessage);
 
     valueForAssertion.then((value) => {
@@ -89,6 +103,6 @@ describe('Ensure logstash is working', () => {
 
       logger.close();
       done();
-    });
+    }).catch(done);
   });
 });
