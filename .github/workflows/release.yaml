@@ -29,25 +29,51 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
+      id-token: write  # Required for npm provenance / Trusted Publishing
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for changelog generation
+
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
           registry-url: 'https://registry.npmjs.org'
+
       - name: Install dependencies
         run: npm ci
+
       - name: Build
         run: npm run build
-      - name: Publish to npm
+
+      - name: Generate Changelog
+        run: npx auto-changelog --starting-version $(git describe --tags --abbrev=0)
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for release
+        id: changelog
+        run: |
+          # Extract changelog section for this version
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          CHANGELOG=$(awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[v[0-9]/{flag=0} flag" CHANGELOG.md)
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Publish to npm (Trusted Publishing)
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          name: ${{ steps.get_version.outputs.VERSION }}
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
