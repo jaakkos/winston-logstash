@@ -64,7 +64,10 @@ jobs:
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Publish to npm (Trusted Publishing)
+      # Publish with provenance for supply chain security
+      # Requires NPM_TOKEN secret with "Automation" type token
+      # The --provenance flag adds cryptographic attestation
+      - name: Publish to npm
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
