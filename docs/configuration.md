@@ -1,11 +1,16 @@
 ## Configuration
 
+### Connection Options
+
 * `host`
   * The host location of the logstash server.
   * Default: `127.0.0.1`
 * `port`
   * The host port to connect.
   * Default: `28777`
+
+### Retry Options
+
 * `max_connect_retries`
   * Max number of attempts to reconnect to logstash before going into silence.
   * `-1` means retry forever.
@@ -34,21 +39,42 @@
       }
       ```
   * For production services, exponential backoff with unlimited retries is recommended to handle temporary outages gracefully.
+
+### SSL Options
+
 * `ssl_enable`
-  * Enable SSL transfer of logs to logstash.
+  * Enable SSL/TLS transfer of logs to logstash.
   * Default: `false`
 * `ssl_key`
   * Path location of client private key.
-  * Only needed if SSL verify is required on logstash.
+  * Only needed if SSL client authentication is required on logstash.
   * No default
 * `ssl_cert`
   * Path location of client public certificate.
-  * Only needed if SSL verify is required on logstash.
+  * Only needed if SSL client authentication is required on logstash.
+  * No default
+* `ca`
+  * Path location of certificate authority (CA) certificate.
+  * Used to verify the server's certificate.
   * No default
 * `ssl_passphrase`
   * Passphrase for the SSL key.
-  * Only needed if the certificate has a passphrase.
+  * Only needed if the private key has a passphrase.
   * No default
 * `rejectUnauthorized`
-  * If true the server will reject any connection which is not authorized with the list of supplied CAs.
-  * Default true
+  * If true, the connection will reject any server certificate that is not authorized with the list of supplied CAs.
+  * Default: `true`
+
+### Winston 2.x Specific Options
+
+These options are only applicable when using Winston 2.x:
+
+* `node_name`
+  * The name of the node/application.
+  * Default: `process.title`
+* `meta`
+  * Default metadata to include with every log entry.
+  * No default
+* `label`
+  * Label for the transport.
+  * Default: value of `node_name`
