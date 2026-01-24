@@ -3,13 +3,15 @@
   "version": "1.2.1",
   "description": "A Logstash transport for winston",
   "main": "./lib/winston-logstash",
+  "types": "./lib/index.d.ts",
   "homepage": "https://github.com/jaakkos/winston-logstash",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "watch": "babel src --out-dir lib --extensions '.ts' --watch",
-    "build": "babel src --out-dir lib --extensions '.ts'",
+    "build": "babel src --out-dir lib --extensions '.ts' && tsc --project tsconfig.types.json",
+    "build:types": "tsc --project tsconfig.types.json",
     "version": "auto-changelog -p && git add CHANGELOG.md"
   },
   "files": [

@@ -7,7 +7,7 @@
 import {Transport} from "winston";
 const common = require('winston/lib/winston/common');
 import { Manager } from './manager';
-import { LogstashTransportOptions } from "./types";
+import { LogstashOptions } from "./types";
 import { IConnection, PlainConnection, SecureConnection } from "./connection";
 
 export class Logstash extends Transport {
@@ -18,7 +18,7 @@ export class Logstash extends Transport {
   private manager: Manager
   private connection: IConnection;
 
-  constructor(options: LogstashTransportOptions) {
+  constructor(options: LogstashOptions) {
     super(options);
     this.name = 'logstash';
     this.node_name = options.node_name || process.title;

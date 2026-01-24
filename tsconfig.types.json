@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "noEmit": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
@@ -8,7 +7,10 @@
     "module": "AMD",
     "baseUrl": ".",
     "outDir": "lib",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outFile": "lib/index.d.ts"
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"]
