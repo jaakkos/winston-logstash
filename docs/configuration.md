@@ -55,7 +55,8 @@
   * No default
 * `ca`
   * Path location of certificate authority (CA) certificate.
-  * Used to verify the server's certificate.
+  * **Required for self-signed certificates** - provide the CA that signed the server certificate.
+  * If not provided, the system's trusted CAs are used for verification.
   * No default
 * `ssl_passphrase`
   * Passphrase for the SSL key.
@@ -64,6 +65,26 @@
 * `rejectUnauthorized`
   * If true, the connection will reject any server certificate that is not authorized with the list of supplied CAs.
   * Default: `true`
+
+#### SSL with Self-Signed Certificates
+
+If your Logstash server uses a self-signed certificate, you have two options:
+
+1. **Recommended:** Provide the CA certificate that signed the server certificate:
+   ```js
+   {
+     ssl_enable: true,
+     ca: '/path/to/ca.cert'
+   }
+   ```
+
+2. **Not recommended for production:** Disable certificate verification:
+   ```js
+   {
+     ssl_enable: true,
+     rejectUnauthorized: false  // Security risk - disables verification
+   }
+   ```
 
 ### Winston 2.x Specific Options
 

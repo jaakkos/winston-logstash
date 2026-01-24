@@ -173,5 +173,71 @@ describe('Connection', () => {
             connection.connect();
         });
 
+        test('defaults rejectUnauthorized to true when not specified', () => {
+            const optionsWithoutReject = {
+                ...options,
+                ssl_key: sslFilePath('client.key'),
+                ssl_cert: sslFilePath('client.cert'),
+                ca: sslFilePath('ca.cert'),
+                // rejectUnauthorized not specified
+            };
+            const conn = new SecureConnection(optionsWithoutReject);
+            expect(conn['secureContextOptions'].rejectUnauthorized).toBe(true);
+        });
+
+        test('respects explicit rejectUnauthorized: false', () => {
+            const optionsWithRejectFalse = {
+                ...options,
+                ssl_key: sslFilePath('client.key'),
+                ssl_cert: sslFilePath('client.cert'),
+                ca: sslFilePath('ca.cert'),
+                rejectUnauthorized: false,
+            };
+            const conn = new SecureConnection(optionsWithRejectFalse);
+            expect(conn['secureContextOptions'].rejectUnauthorized).toBe(false);
+        });
+
+        test('warns when SSL enabled without CA and rejectUnauthorized is true', () => {
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            
+            const optionsWithoutCA = {
+                ...options,
+                ssl_key: sslFilePath('client.key'),
+                ssl_cert: sslFilePath('client.cert'),
+                // no ca provided
+            };
+            new SecureConnection(optionsWithoutCA);
+            
+            expect(warnSpy).toHaveBeenCalledWith(
+                expect.stringContaining('SSL verification is enabled but no CA certificate provided')
+            );
+            
+            warnSpy.mockRestore();
+        });
+
+        test('does not warn when CA is provided', () => {
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            
+            new SecureConnection(sslOptions); // has ca
+            
+            expect(warnSpy).not.toHaveBeenCalled();
+            
+            warnSpy.mockRestore();
+        });
+
+        test('does not warn when rejectUnauthorized is false', () => {
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            
+            const optionsWithRejectFalse = {
+                ...options,
+                rejectUnauthorized: false,
+            };
+            new SecureConnection(optionsWithRejectFalse);
+            
+            expect(warnSpy).not.toHaveBeenCalled();
+            
+            warnSpy.mockRestore();
+        });
+
     });
 });

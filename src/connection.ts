@@ -134,13 +134,25 @@ export class SecureConnection extends Connection {
     const sslCert = options.ssl_cert;
     const ca = options.ca;
     const sslPassphrase = options.ssl_passphrase;
-    const rejectUnauthorized = options.rejectUnauthorized;
+    // Default to true (secure) - verify server certificate
+    const rejectUnauthorized = options.rejectUnauthorized !== false;
+
+    // Warn if SSL verification is enabled but no CA is provided
+    // This will likely fail with self-signed certificates
+    if (rejectUnauthorized && !ca) {
+      console.warn(
+        '[winston-logstash] SSL verification is enabled but no CA certificate provided. ' +
+        'Connection will fail if the server uses a self-signed certificate. ' +
+        'Either provide a "ca" option with the CA certificate path, ' +
+        'or set "rejectUnauthorized: false" (not recommended for production).'
+      );
+    }
 
     const secureContextOptions = {
       key: sslKey && readFileSync(sslKey),
       cert: sslCert && readFileSync(sslCert),
       passphrase: sslPassphrase || undefined,
-      rejectUnauthorized: rejectUnauthorized!,
+      rejectUnauthorized: rejectUnauthorized,
       ca: ca && readFileSync(ca)
     };
 
