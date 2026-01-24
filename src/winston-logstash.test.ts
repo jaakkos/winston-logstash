@@ -283,6 +283,28 @@ describe('winston-logstash transport', function () {
         logger.log('info', 'hello world', { stream: 'sample' });
       }, 400);
     });
+
+    test('returns immediately when transport is in silent mode', function (done) {
+      const logger = createLogger(28748, false, {
+        timeout_connect_retries: 1,
+        max_connect_retries: 1
+      });
+
+      // Suppress errors since we don't have a server
+      logger.transports.logstash.on('error', () => {});
+
+      // Set silent mode directly
+      logger.transports.logstash.silent = true;
+
+      // Log should complete without errors when in silent mode
+      logger.log('info', 'test message', { stream: 'sample' });
+      
+      // If we get here without hanging, silent mode is working
+      setTimeout(() => {
+        logger.close();
+        done();
+      }, 50);
+    });
   });
 });
 

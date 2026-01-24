@@ -76,6 +76,51 @@ describe('Connection', () => {
             expect(connection.readyToSend()).toBe(true);
         });
 
+        test('emits timeout event when socket times out', (done) => {
+            MockedNet.Socket.mockReturnValue(socket as any);
+            connection.connect();
+
+            connection.on(ConnectionEvents.Timeout, (readyState) => {
+                expect(connection['action']).toBe(ConnectionActions.HandlingError);
+                done();
+            });
+
+            socket.emit('timeout');
+        });
+
+        test('emits drain event when socket drains', (done) => {
+            MockedNet.Socket.mockReturnValue(socket as any);
+            connection.connect();
+
+            connection.on(ConnectionEvents.Drain, () => {
+                done();
+            });
+
+            socket.emit('drain');
+        });
+
+        test('emits Closed event when closing intentionally', (done) => {
+            MockedNet.Socket.mockReturnValue(socket as any);
+            connection.connect();
+
+            connection.on(ConnectionEvents.Closed, () => {
+                done();
+            });
+
+            connection.close();
+        });
+
+        test('emits ClosedByServer event when server closes connection', (done) => {
+            MockedNet.Socket.mockReturnValue(socket as any);
+            connection.connect();
+
+            connection.on(ConnectionEvents.ClosedByServer, () => {
+                done();
+            });
+
+            socket.emit('close', new Error('Connection closed by server'));
+        });
+
     });
 
     describe('SecureConnection', () => {
@@ -106,9 +151,23 @@ describe('Connection', () => {
             expect(connection['action']).toBe(ConnectionActions.Connecting);
         });
 
-        test('checks if secure```javascript connection is ready to send', () => {
+        test('checks if secure connection is ready to send', () => {
             connection['socket'] = socket;
             expect(connection.readyToSend()).toBe(true);
+        });
+
+        test('emits error when TLS connect throws', (done) => {
+            const testError = new Error('TLS connection failed');
+            MockedTls.connect.mockImplementation(() => {
+                throw testError;
+            });
+
+            connection.on(ConnectionEvents.Error, (error) => {
+                expect(error).toBe(testError);
+                done();
+            });
+
+            connection.connect();
         });
 
     });

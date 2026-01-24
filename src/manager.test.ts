@@ -95,5 +95,87 @@ describe('Manager', () => {
     expect(spyOnEmit).toHaveBeenCalledWith('closing');
     expect(spyOnClose).toHaveBeenCalled();
   });
+
+  test('can set a new connection', () => {
+    const newConnection = new MockedPlainConnection(options);
+    manager.setConnection(newConnection);
+    expect(manager['connection']).toBe(newConnection);
+  });
+
+  test('re-queues log entry when send fails with error', () => {
+    const logEntry = 'test log entry';
+    const callback = jest.fn();
+    
+    // Mock send to call callback with an error
+    let sendCallback: (error?: Error) => void;
+    connection.send = jest.fn().mockImplementation((entry, cb) => {
+      sendCallback = cb;
+      return true;
+    });
+    
+    manager['logQueue'].push([logEntry, callback]);
+    manager.flush();
+    
+    // Simulate send error
+    sendCallback!(new Error('Send failed'));
+    
+    // Entry should be re-queued
+    expect(manager['logQueue']).toHaveLength(1);
+    expect(manager['logQueue'][0][0]).toBe(logEntry);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  test('calls callback when send succeeds', () => {
+    const logEntry = 'test log entry';
+    const callback = jest.fn();
+    
+    let sendCallback: (error?: Error) => void;
+    connection.send = jest.fn().mockImplementation((entry, cb) => {
+      sendCallback = cb;
+      return true;
+    });
+    
+    manager['logQueue'].push([logEntry, callback]);
+    manager.flush();
+    
+    // Simulate successful send
+    sendCallback!();
+    
+    expect(callback).toHaveBeenCalled();
+  });
+
+  test('isRetryableError always returns true (current implementation)', () => {
+    // Note: isRetryableError currently always returns true per TODO in code
+    const error = new Error('Any error');
+    expect(manager['isRetryableError'](error)).toBe(true);
+  });
+
+  test('shouldTryToReconnect returns false when max retries reached', () => {
+    const error = new Error('Connection error');
+    
+    manager['retries'] = manager['maxConnectRetries'] + 1;
+    
+    expect(manager['shouldTryToReconnect'](error)).toBe(false);
+  });
+
+  test('shouldTryToReconnect returns true when under max retries', () => {
+    const error = new Error('Connection error');
+    
+    manager['retries'] = 0;
+    
+    expect(manager['shouldTryToReconnect'](error)).toBe(true);
+  });
+
+  test('shouldTryToReconnect returns true with infinite retries', () => {
+    const infiniteManager = new Manager({
+      ...options,
+      max_connect_retries: -1
+    }, connection);
+    
+    const error = new Error('Connection error');
+    infiniteManager['retries'] = 1000;
+    
+    expect(infiniteManager['shouldTryToReconnect'](error)).toBe(true);
+  });
   
 });
