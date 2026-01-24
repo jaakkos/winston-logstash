@@ -17,7 +17,7 @@ jobs:
         winston-version: [2x, 3x]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Start containers for Winston ${{ matrix.winston-version }}
         working-directory: ./test-bench/logstash/
         run: docker compose -f "docker-compose.yml" up -d
