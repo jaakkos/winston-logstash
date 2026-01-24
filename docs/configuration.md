@@ -1,5 +1,13 @@
 ## Configuration
 
+### Automatic Formatting
+
+The transport automatically handles the following formatting:
+
+* **ANSI Color Stripping**: ANSI escape codes (from `winston.format.colorize()` etc.) are automatically removed before sending to Logstash.
+* **Circular Reference Handling**: Circular object references are replaced with `"[Circular]"` to prevent JSON serialization errors.
+* **Shared References**: Objects referenced multiple times are fully serialized at each location (no data loss).
+
 ### Connection Options
 
 * `host`

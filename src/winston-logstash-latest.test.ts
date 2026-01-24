@@ -172,4 +172,81 @@ describe('winston-logstash-latest transport', () => {
     expect(parsed.services.worker.config).toEqual(config);
     expect(parsed.services.worker.config).not.toBe('[Circular]');
   });
+
+  test('strips ANSI color codes from messages', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+
+    // Simulate colorized log message (like from winston.format.colorize())
+    const obj = {
+      level: '\x1b[32minfo\x1b[39m', // green "info"
+      message: '\x1b[33mHello World\x1b[39m', // yellow message
+    };
+
+    const callback = jest.fn();
+    transport.log(obj, callback);
+
+    const loggedString = mockManager.log.mock.calls[0][0];
+    const parsed = JSON.parse(loggedString);
+    
+    // ANSI codes should be stripped
+    expect(parsed.level).toBe('info');
+    expect(parsed.message).toBe('Hello World');
+  });
+
+  test('strips ANSI color codes from nested metadata', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+
+    const obj = {
+      level: 'info',
+      message: 'test',
+      meta: {
+        status: '\x1b[31merror\x1b[39m', // red "error"
+        details: {
+          code: '\x1b[34m500\x1b[39m', // blue "500"
+        },
+      },
+    };
+
+    const callback = jest.fn();
+    transport.log(obj, callback);
+
+    const loggedString = mockManager.log.mock.calls[0][0];
+    const parsed = JSON.parse(loggedString);
+    
+    expect(parsed.meta.status).toBe('error');
+    expect(parsed.meta.details.code).toBe('500');
+  });
+
+  test('handles various ANSI escape sequences', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+
+    // Test various ANSI sequences: bold, underline, colors, background
+    const obj = {
+      level: 'info',
+      bold: '\x1b[1mBold\x1b[22m',
+      underline: '\x1b[4mUnderline\x1b[24m',
+      bgColor: '\x1b[41mRed Background\x1b[49m',
+      combined: '\x1b[1m\x1b[31mBold Red\x1b[39m\x1b[22m',
+    };
+
+    const callback = jest.fn();
+    transport.log(obj, callback);
+
+    const loggedString = mockManager.log.mock.calls[0][0];
+    const parsed = JSON.parse(loggedString);
+    
+    expect(parsed.bold).toBe('Bold');
+    expect(parsed.underline).toBe('Underline');
+    expect(parsed.bgColor).toBe('Red Background');
+    expect(parsed.combined).toBe('Bold Red');
+  });
 });

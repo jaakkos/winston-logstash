@@ -11,13 +11,33 @@ import { LogstashTransportOptions } from "./types";
 import { IConnection, PlainConnection, SecureConnection } from "./connection";
 
 /**
+ * ANSI escape code regex pattern.
+ * Matches all ANSI escape sequences used for terminal colors and formatting.
+ */
+const ANSI_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+
+/**
+ * Strip ANSI escape codes from a string.
+ * This removes color codes added by winston.format.colorize() and similar formatters.
+ */
+function stripAnsi(str: string): string {
+  return str.replace(ANSI_REGEX, '');
+}
+
+/**
  * Safely stringify an object, handling circular references.
  * Only true circular references (cycles in the current path) are replaced with "[Circular]".
  * Shared object references (same object at multiple locations) are preserved.
+ * Also strips ANSI color codes from all string values.
  */
 function safeStringify(obj: any): string {
   const ancestors: any[] = [];
   return JSON.stringify(obj, function(_key, value) {
+    // Strip ANSI codes from string values
+    if (typeof value === 'string') {
+      return stripAnsi(value);
+    }
+
     if (typeof value !== 'object' || value === null) {
       return value;
     }
