@@ -12,17 +12,29 @@ import { IConnection, PlainConnection, SecureConnection } from "./connection";
 
 /**
  * Safely stringify an object, handling circular references.
- * Circular references are replaced with "[Circular]".
+ * Only true circular references (cycles in the current path) are replaced with "[Circular]".
+ * Shared object references (same object at multiple locations) are preserved.
  */
 function safeStringify(obj: any): string {
-  const seen = new WeakSet();
-  return JSON.stringify(obj, (_key, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return '[Circular]';
-      }
-      seen.add(value);
+  const ancestors: any[] = [];
+  return JSON.stringify(obj, function(_key, value) {
+    if (typeof value !== 'object' || value === null) {
+      return value;
     }
+
+    // `this` is the object containing the property being processed.
+    // When we move to a sibling or go back up the tree, we need to
+    // remove objects from ancestors that are no longer in our path.
+    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+      ancestors.pop();
+    }
+
+    // Check if value is already an ancestor (true circular reference)
+    if (ancestors.includes(value)) {
+      return '[Circular]';
+    }
+
+    ancestors.push(value);
     return value;
   });
 }
