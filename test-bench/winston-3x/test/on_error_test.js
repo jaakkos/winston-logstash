@@ -10,7 +10,7 @@ describe('Ensure error is handled correctly', () => {
           max_connect_retries: 2,
           port: 7878,
           node_name: 'my node name',
-          host: 'localhost',
+          host: '127.0.0.1',
           ssl_enable: true,
           ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
