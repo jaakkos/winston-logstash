@@ -20,12 +20,12 @@ jobs:
         winston-version: [2x, 3x]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Start containers for Winston ${{ matrix.winston-version }}
         working-directory: ./test-bench/logstash/
         run: docker compose -f "docker-compose.yml" up -d
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install base project deps
