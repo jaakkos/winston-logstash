@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": { },
   "devDependencies": {
-    "jest": "29.3.1",
+    "jest": "30.3.0",
     "winston": "2.4.3",
     "winston-logstash": "file:../../."
   }
