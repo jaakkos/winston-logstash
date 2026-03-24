@@ -26,6 +26,9 @@ describe('Ensure error is handled correctly', () => {
           .toMatch('Max retries reached, transport in silent mode, OFFLINE');
       done();
     });
+    logger.on('error', () => {
+      // Ignore logger errors to prevent unhandled error in tests
+    });
     logger.log('info', 'random message');
   });
 });

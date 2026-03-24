@@ -151,7 +151,6 @@ declare module "winston-logstash-latest" {
         private connection;
         name: string;
         constructor(options: LogstashTransportOptions);
-        onError(error: Error): void;
         log(info: any, callback: Function): void;
         close(): void;
     }

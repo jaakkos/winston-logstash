@@ -74,13 +74,11 @@ class LogstashTransport extends Transport {
 
     this.connection = options.ssl_enable ? new SecureConnection(options) : new PlainConnection(options);
     this.manager = new Manager(options, this.connection);
-    this.manager.on('error', this.onError.bind(this));
+    this.manager.on('error', (error) => {
+      this.silent = true;
+      this.emit('error', error);
+    });
     this.manager.start();
-  }
-
-  onError(error: Error) {
-    this.silent = true;
-    this.emit('error', error);
   }
 
   log(info: any, callback: Function) {
