@@ -17,7 +17,7 @@ const assertClient = (port, expectedId) => {
       reject(new Error('Timeout waiting for message with id: ' + expectedId));
     }, 10000);
 
-    client.connect(port, 'localhost', function() {
+    client.connect(port, '127.0.0.1', function() {
       // Connected
     });
 
@@ -55,7 +55,7 @@ describe('Ensure logstash is working', () => {
           max_connect_retries: -1,
           port: 9888,
           node_name: 'my node name',
-          host: 'localhost',
+          host: '127.0.0.1',
           ssl_enable: true,
           ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',
@@ -85,7 +85,7 @@ describe('Ensure logstash is working', () => {
           max_connect_retries: -1,
           port: 9777,
           node_name: 'my node name',
-          host: 'localhost',
+          host: '127.0.0.1',
           ssl_enable: false,
           ca: __dirname + '/../../../test/support/ssl/ca.cert',
           ssl_key: __dirname + '/../../../test/support/ssl/client.key',

@@ -16,7 +16,7 @@ const assertClient = (port, expectedId) => {
       reject(new Error('Timeout waiting for message with id: ' + expectedId));
     }, 10000);
 
-    client.connect(port, 'localhost', function() {
+    client.connect(port, '127.0.0.1', function() {
       // Connected
     });
 
@@ -49,7 +49,7 @@ const buildLogger = (ssl) => new (winston.Logger)({
       max_connect_retries: 100,
       port: ssl ? 9888 : 9777,
       node_name: 'my node name',
-      host: 'localhost',
+      host: '127.0.0.1',
       ssl_enable: ssl,
       ca: __dirname + '/../../../test/support/ssl/ca.cert',
       ssl_key: __dirname + '/../../../test/support/ssl/client.key',

@@ -29,18 +29,18 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install base project deps
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Build base project
         run: npm run build
       - name: Install dependencies for test case
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Wait for Logstash
         working-directory: ./test-bench/logstash/
         run: |
-          npx --yes wait-on --timeout 90000 --verbose tcp:localhost:9777 &&
-          npx --yes wait-on --timeout 90000 --verbose tcp:localhost:9888 &&
-          npx --yes wait-on --timeout 90000 --verbose tcp:localhost:9999 &&
+          npx --yes wait-on --timeout 90000 --verbose tcp:127.0.0.1:9777 &&
+          npx --yes wait-on --timeout 90000 --verbose tcp:127.0.0.1:9888 &&
+          npx --yes wait-on --timeout 90000 --verbose tcp:127.0.0.1:9999 &&
           docker compose logs --no-color logstash
       - run: npm test
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
