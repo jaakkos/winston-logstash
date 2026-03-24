@@ -21,15 +21,27 @@ const assertClient = (port, expectedId) => {
       // Connected
     });
 
+    let buffer = '';
     client.on('data', function(data) {
-      const message = JSON.parse(data);
-      // Only resolve if this is the message we're looking for
-      if (message.message && message.message.includes(expectedId)) {
-        clearTimeout(timeout);
-        resolve(message);
-        client.destroy();
+      buffer += data.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep the last partial line in the buffer
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const message = JSON.parse(line);
+          // Only resolve if this is the message we're looking for
+          if (message.message && message.message.includes(expectedId)) {
+            clearTimeout(timeout);
+            resolve(message);
+            client.destroy();
+            return;
+          }
+        } catch (e) {
+          // Ignore parse errors for partial/malformed lines
+        }
       }
-      // Otherwise keep listening for the right message
     });
 
     client.on('close', function() {

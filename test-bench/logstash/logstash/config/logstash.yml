@@ -1,3 +1,4 @@
 http.host: 0.0.0.0
 xpack.monitoring.enabled: false
 config.reload.automatic: false
+pipeline.ecs_compatibility: disabled
