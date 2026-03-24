@@ -44,7 +44,7 @@ export abstract class Connection extends EventEmitter implements IConnection {
   constructor(options: ConnectionOptions) {
     super();
     this.action = ConnectionActions.Initializing;
-    this.host = options?.host ?? '127.0.0.1';
+    this.host = options?.host ?? 'localhost';
     this.port = options?.port ?? 28777;
   }
 

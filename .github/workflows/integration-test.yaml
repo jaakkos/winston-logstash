@@ -42,7 +42,7 @@ jobs:
            npx --yes wait-on --timeout 90000 --verbose tcp:127.0.0.1:9888 && \
            npx --yes wait-on --timeout 90000 --verbose tcp:127.0.0.1:9999) || \
           (docker compose logs --no-color logstash && exit 1)
-      - run: npm test
+      - run: npm test || (docker compose logs --no-color logstash && exit 1)
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
       - name: Stop containers
         working-directory: ./test-bench/logstash/

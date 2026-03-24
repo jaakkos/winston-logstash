@@ -20,4 +20,4 @@ services:
       - "9999:9999/tcp"
       - "9600:9600"
     environment:
-      LS_JAVA_OPTS: "-Xmx512m -Xms512m"
+      LS_JAVA_OPTS: "-Xmx1g -Xms1g"

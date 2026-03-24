@@ -76,7 +76,11 @@ class LogstashTransport extends Transport {
     this.manager = new Manager(options, this.connection);
     this.manager.on('error', (error) => {
       this.silent = true;
-      this.emit('error', error);
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', error);
+      } else {
+        console.error('[winston-logstash] Unhandled transport error:', error.message);
+      }
     });
     this.manager.start();
   }

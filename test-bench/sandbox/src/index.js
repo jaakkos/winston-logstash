@@ -16,7 +16,7 @@ const logger = winston.createLogger({
     new LogstashTransport({
       port: 9777,
       node_name: 'my node name',
-      host: 'localhost',
+      host: '127.0.0.1',
       ssl_enable: false,
     }),
   ],

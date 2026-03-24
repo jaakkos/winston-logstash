@@ -51,7 +51,11 @@ export class Logstash extends Transport {
 
   onError(error: Error) {
     this.silent = true;
-    this.emit('error', error);
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', error);
+    } else {
+      console.error('[winston-logstash] Unhandled transport error:', error.message);
+    }
   }
 
   close() {
