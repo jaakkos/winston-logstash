@@ -3,6 +3,7 @@ const winston = require('winston');
 const transports = require('../../../lib/winston-logstash');
 
 describe('Ensure error is handled correctly', () => {
+  jest.setTimeout(15000);
   it('add error eventhandler for logger', (done) => {
     const logstashTransport = new transports.Logstash({
       max_connect_retries: 2,

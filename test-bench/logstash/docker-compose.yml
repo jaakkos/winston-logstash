@@ -1,5 +1,6 @@
 services:
   logstash:
+    build: .
     image: logstash:8.17.2
     volumes:
       - type: bind
