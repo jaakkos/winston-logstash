@@ -1,8 +1,6 @@
-version: '3.7'
-
 services:
   logstash:
-    image: logstash:8.5.0
+    image: docker.elastic.co/logstash/logstash:8.17.0
     volumes:
       - type: bind
         source: ./logstash/config/logstash.yml
