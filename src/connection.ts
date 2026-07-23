@@ -40,12 +40,14 @@ export abstract class Connection extends EventEmitter implements IConnection {
   protected host: string;
   protected port: number;
   protected action: ConnectionActions;
+  protected socketTimeoutMs: number;
 
   constructor(options: ConnectionOptions) {
     super();
     this.action = ConnectionActions.Initializing;
     this.host = options?.host ?? '127.0.0.1';
     this.port = options?.port ?? 28777;
+    this.socketTimeoutMs = options?.socket_timeout_ms ?? 0;
   }
 
   private socketOnError(error: Error) {
@@ -81,6 +83,9 @@ export abstract class Connection extends EventEmitter implements IConnection {
     socket.once('error', this.socketOnError.bind(this));
     socket.once('timeout', this.socketOnTimeout.bind(this));
     socket.once('close', this.socketOnClose.bind(this));
+    if (this.socketTimeoutMs > 0) {
+      socket.setTimeout(this.socketTimeoutMs);
+    }
   }
 
 

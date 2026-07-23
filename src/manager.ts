@@ -20,6 +20,7 @@ export class Manager extends EventEmitter {
   private readonly retryStrategy: RetryStrategy;
   private nextRetryDelayMs: number = DEFAULT_INITIAL_DELAY_MS;
   private retryTimeout?: ReturnType<typeof setTimeout> = undefined;
+  private isFlushing = false;
 
   private connectionCallbacks: Map<ConnectionEvents, (e:Error) => void> = new Map<ConnectionEvents, () => void>;
 
@@ -175,20 +176,28 @@ export class Manager extends EventEmitter {
 
   flush() {
     this.emit('flushing');
-    let connectionIsDrained = true;
-    while (this.logQueue.length && connectionIsDrained && this.connection?.readyToSend()) {
-      const logEntry = this.logQueue.shift();
-      if (logEntry) {
-        const [entry, callback] = logEntry;
-        const self = this;
-        connectionIsDrained = this.connection.send(entry + '\n', (error?: Error) => {
-          if (error) {
-            self.logQueue.unshift(logEntry);
-          } else {
-            callback();
-          }
-        });
+    if (this.isFlushing || !this.logQueue.length || !this.connection?.readyToSend()) {
+      return;
+    }
+
+    const logEntry = this.logQueue[0];
+    const [entry, callback] = logEntry;
+    this.isFlushing = true;
+
+    const canWriteMore = this.connection.send(entry + '\n', (error?: Error) => {
+      this.isFlushing = false;
+      if (error) {
+        // Leave the entry at the front of the queue for a later flush/retry.
+        return;
       }
+      this.logQueue.shift();
+      callback();
+      process.nextTick(() => this.flush());
+    });
+
+    // When write returns false, wait for Drain (and/or the write callback) before continuing.
+    if (!canWriteMore) {
+      return;
     }
   }
 };

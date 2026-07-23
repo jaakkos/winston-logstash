@@ -77,12 +77,17 @@ describe('Manager', () => {
   test('flushes log queue', () => {
     const logEntry = 'test log entry';
     const callback = jest.fn();
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
+      cb();
+      return true;
+    });
     manager['logQueue'].push([logEntry, callback]);
 
     manager.flush();
 
     expect(manager['logQueue']).toHaveLength(0);
     expect(connection.send).toHaveBeenCalledWith(logEntry + '\n', expect.any(Function));
+    expect(callback).toHaveBeenCalled();
   });
 
   test('should emit events when connection methods are called', () => {
@@ -168,13 +173,12 @@ describe('Manager', () => {
     expect(startSpy).not.toHaveBeenCalled();
   });
 
-  test('stops flush when send returns false and resumes on Drain', () => {
-    let sendCount = 0;
+  test('stops flush when send returns false and resumes after write completes', () => {
+    const writeCallbacks: Array<(error?: Error) => void> = [];
     connection.send = jest.fn().mockImplementation((_entry, cb) => {
-      sendCount++;
-      cb();
+      writeCallbacks.push(cb);
       // First write signals backpressure
-      return sendCount === 1 ? false : true;
+      return writeCallbacks.length === 1 ? false : true;
     });
     manager['addEventListeners']();
     manager['logQueue'].push(
@@ -186,11 +190,36 @@ describe('Manager', () => {
     manager.flush();
 
     expect(connection.send).toHaveBeenCalledTimes(1);
+    expect(manager['logQueue']).toHaveLength(3);
+
+    // Completing the backpressured write removes the entry and schedules the next flush
+    writeCallbacks[0]!();
     expect(manager['logQueue']).toHaveLength(2);
+    jest.runAllTicks();
+    expect(connection.send).toHaveBeenCalledTimes(2);
 
-    connection.emit(ConnectionEvents.Drain);
-
+    writeCallbacks[1]!();
+    jest.runAllTicks();
     expect(connection.send).toHaveBeenCalledTimes(3);
+
+    writeCallbacks[2]!();
+    jest.runAllTicks();
+    expect(manager['logQueue']).toHaveLength(0);
+  });
+
+  test('Drain event resumes flush when not already writing', () => {
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
+      cb();
+      return true;
+    });
+    manager['addEventListeners']();
+    manager['logQueue'].push(['entry-a', jest.fn()]);
+
+    // Not flushing yet — Drain should kick flush
+    connection.emit(ConnectionEvents.Drain);
+    jest.runAllTicks();
+
+    expect(connection.send).toHaveBeenCalledTimes(1);
     expect(manager['logQueue']).toHaveLength(0);
   });
 
@@ -250,7 +279,7 @@ describe('Manager', () => {
 
     // Mock send to call callback with an error
     let sendCallback: (error?: Error) => void;
-    connection.send = jest.fn().mockImplementation((entry, cb) => {
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
       sendCallback = cb;
       return true;
     });
@@ -258,10 +287,12 @@ describe('Manager', () => {
     manager['logQueue'].push([logEntry, callback]);
     manager.flush();
 
-    // Simulate send error
+    // Entry stays at front until write succeeds
+    expect(manager['logQueue']).toHaveLength(1);
+
+    // Simulate send error — entry remains at front (not dropped)
     sendCallback!(new Error('Send failed'));
 
-    // Entry should be re-queued
     expect(manager['logQueue']).toHaveLength(1);
     expect(manager['logQueue'][0][0]).toBe(logEntry);
     expect(callback).not.toHaveBeenCalled();
@@ -272,7 +303,7 @@ describe('Manager', () => {
     const callback = jest.fn();
 
     let sendCallback: (error?: Error) => void;
-    connection.send = jest.fn().mockImplementation((entry, cb) => {
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
       sendCallback = cb;
       return true;
     });
@@ -283,7 +314,57 @@ describe('Manager', () => {
     // Simulate successful send
     sendCallback!();
 
+    expect(manager['logQueue']).toHaveLength(0);
     expect(callback).toHaveBeenCalled();
+  });
+
+  test('does not start a second write until the first write callback completes', () => {
+    const writeCallbacks: Array<(error?: Error) => void> = [];
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
+      writeCallbacks.push(cb);
+      return true;
+    });
+
+    const cbA = jest.fn();
+    const cbB = jest.fn();
+    manager['logQueue'].push(['entry-a', cbA], ['entry-b', cbB]);
+
+    manager.flush();
+
+    expect(connection.send).toHaveBeenCalledTimes(1);
+    expect(manager['logQueue']).toHaveLength(2);
+
+    writeCallbacks[0]();
+    expect(cbA).toHaveBeenCalled();
+    expect(manager['logQueue'][0][0]).toBe('entry-b');
+
+    // Continue via nextTick
+    jest.runAllTicks();
+
+    expect(connection.send).toHaveBeenCalledTimes(2);
+    writeCallbacks[1]();
+    expect(cbB).toHaveBeenCalled();
+    expect(manager['logQueue']).toHaveLength(0);
+  });
+
+  test('keeps later entries unsent when an in-flight write fails', () => {
+    let sendCallback: (error?: Error) => void;
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
+      sendCallback = cb;
+      return true;
+    });
+
+    manager['logQueue'].push(['entry-a', jest.fn()], ['entry-b', jest.fn()]);
+    manager.flush();
+
+    expect(connection.send).toHaveBeenCalledTimes(1);
+
+    sendCallback!(new Error('write failed'));
+    jest.runAllTicks();
+
+    // Failed entry stays at front; second entry never started
+    expect(connection.send).toHaveBeenCalledTimes(1);
+    expect(manager['logQueue'].map(([entry]) => entry)).toEqual(['entry-a', 'entry-b']);
   });
 
   test('isRetryableError always returns true (current implementation)', () => {

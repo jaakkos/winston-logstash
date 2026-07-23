@@ -14,7 +14,14 @@ export type LogEntries = [LogEntry];
 export interface ConnectionOptions {
   host?: string;
   port?: number;
+  /**
+   * Idle socket timeout in ms. When set to a positive value, the socket
+   * emits timeout (and the manager treats it like a connection error / retry).
+   * Default: unset / 0 (disabled) — preserves historical behavior.
+   */
+  socket_timeout_ms?: number;
 }
+
 
 export interface ConnectionManagerOptions {
   max_connect_retries?: number;

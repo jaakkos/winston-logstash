@@ -91,14 +91,24 @@ describe('Connection', () => {
       socket.emit('timeout');
     });
 
-    // Timeout listener is registered, but nothing calls socket.setTimeout — dead path.
-    test('connect does not call socket.setTimeout (Timeout path never fires in practice)', () => {
+    // Timeout listener is registered, but setTimeout is opt-in via socket_timeout_ms.
+    test('connect does not call socket.setTimeout by default', () => {
       socket.setTimeout = jest.fn();
       MockedNet.Socket.mockReturnValue(socket as any);
 
       connection.connect();
 
       expect(socket.setTimeout).not.toHaveBeenCalled();
+    });
+
+    test('connect calls socket.setTimeout when socket_timeout_ms is set', () => {
+      socket.setTimeout = jest.fn();
+      MockedNet.Socket.mockReturnValue(socket as any);
+      const timed = new PlainConnection({...options, socket_timeout_ms: 5000});
+
+      timed.connect();
+
+      expect(socket.setTimeout).toHaveBeenCalledWith(5000);
     });
 
     test('emits drain event when socket drains', (done) => {

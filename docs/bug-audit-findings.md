@@ -64,21 +64,20 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
    - `close()` clears and nulls `retryTimeout` before teardown.  
    - Test: `close() during pending retry must not call start() when timer fires`
 
-### Important
+### Important — fixed
 
-3. **Socket Timeout path is dead**  
-   - `socket.once('timeout')` is registered; nothing calls `socket.setTimeout(...)`.  
-   - **Evidence:** `connect does not call socket.setTimeout (Timeout path never fires in practice)`.  
-   - **Fix options:** Call `setTimeout` with a documented option, or remove Timeout wiring (API-sensitive — prefer additive option).
+3. **Socket Timeout path is dead** — **FIXED**  
+   - Opt-in `socket_timeout_ms` (default `0` / disabled) calls `socket.setTimeout`.  
+   - Default preserves historical behavior.
 
-4. **Flush can reorder / drop under write races**  
-   - Entry is `shift()`ed before write callback; failed writes `unshift` while later in-flight writes may have succeeded.  
-   - No new repro test (needs carefully sequenced multi-callback mock). Still a real race.  
-   - **Recommendation:** Follow-up PR with ordered flush or in-flight tracking.
+4. **Flush can reorder / drop under write races** — **FIXED**  
+   - Flush is serialized: one in-flight write at a time; entry stays at queue front until write succeeds.
+
+### Important (unchanged)
 
 5. **All errors treated as retryable**  
    - Known TODO: `isRetryableError` always returns `true`.  
-   - Changing this is a **behavior change** — do not fix without an opt-in (e.g. new retry strategy flag).
+   - Changing this is a **behavior change** — left unchanged for backward compatibility.
 
 ### Nice-to-have
 
@@ -104,8 +103,8 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 |----------|-----|--------|
 | ~~1~~ | ~~Fix Winston 3 silent gate~~ | Done |
 | ~~2~~ | ~~Clear `retryTimeout` on `Manager.close()`~~ | Done |
-| 3 | Optional `socket_timeout_ms` (or document dead Timeout) | Additive; default preserves current behavior |
-| 4 | Flush ordering / in-flight write safety | Tests first, then minimal fix |
+| ~~3~~ | ~~Optional `socket_timeout_ms`~~ | Done |
+| ~~4~~ | ~~Flush ordering / in-flight write safety~~ | Done |
 | 5 | Winston 3 TCP/SSL unit parity (optional) | Mirror subset of Winston 2 integration tests |
 
 Do **not** change `isRetryableError` or default retry counts without an explicit compatibility decision.

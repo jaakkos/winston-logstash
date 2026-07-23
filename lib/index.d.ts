@@ -6,6 +6,12 @@ declare module "types" {
     export interface ConnectionOptions {
         host?: string;
         port?: number;
+        /**
+         * Idle socket timeout in ms. When set to a positive value, the socket
+         * emits timeout (and the manager treats it like a connection error / retry).
+         * Default: unset / 0 (disabled) — preserves historical behavior.
+         */
+        socket_timeout_ms?: number;
     }
     export interface ConnectionManagerOptions {
         max_connect_retries?: number;
@@ -92,6 +98,7 @@ declare module "connection" {
         protected host: string;
         protected port: number;
         protected action: ConnectionActions;
+        protected socketTimeoutMs: number;
         constructor(options: ConnectionOptions);
         private socketOnError;
         private socketOnTimeout;
@@ -126,6 +133,7 @@ declare module "manager" {
         private readonly retryStrategy;
         private nextRetryDelayMs;
         private retryTimeout?;
+        private isFlushing;
         private connectionCallbacks;
         constructor(options: ConnectionManagerOptions, connection: IConnection);
         private addEventListeners;

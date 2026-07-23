@@ -16,6 +16,9 @@ The transport automatically handles the following formatting:
 * `port`
   * The host port to connect.
   * Default: `28777`
+* `socket_timeout_ms`
+  * Idle socket timeout in milliseconds. When set to a positive value, an idle socket emits a timeout and the transport retries the connection (same path as other connection errors).
+  * Default: unset / `0` (disabled)
 
 ### Retry Options
 
