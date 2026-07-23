@@ -17,6 +17,12 @@ declare module "types" {
         max_connect_retries?: number;
         timeout_connect_retries?: number;
         retryStrategy?: RetryStrategy;
+        /**
+         * When true, only retry transient network errors (ECONNREFUSED, ETIMEDOUT, etc.)
+         * and fail-fast on permanent TLS/certificate errors.
+         * Default: false — retry all errors (historical behavior).
+         */
+        retry_transient_errors_only?: boolean;
     }
     /**
      * Retry strategy configuration for connection failures.
@@ -120,6 +126,14 @@ declare module "connection" {
         static createSecureContextOptions(options: SecureConnectionOptions): tls.ConnectionOptions;
         connect(): void;
     }
+}
+declare module "retryable-error" {
+    export function isPermanentConnectionError(error: unknown): boolean;
+    /**
+     * Whether a connection error should be retried when retry_transient_errors_only is enabled.
+     * Permanent TLS/cert failures return false; known transient and unknown errors return true.
+     */
+    export function isTransientConnectionError(error: unknown): boolean;
 }
 declare module "manager" {
     import { IConnection } from "connection";

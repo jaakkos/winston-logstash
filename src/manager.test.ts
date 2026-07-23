@@ -367,10 +367,109 @@ describe('Manager', () => {
     expect(manager['logQueue'].map(([entry]) => entry)).toEqual(['entry-a', 'entry-b']);
   });
 
-  test('isRetryableError always returns true (current implementation)', () => {
-    // Note: isRetryableError currently always returns true per TODO in code
-    const error = new Error('Any error');
-    expect(manager['isRetryableError'](error)).toBe(true);
+  test('isRetryableError always returns true by default (legacy behavior)', () => {
+    const refused = Object.assign(new Error('connect ECONNREFUSED'), {code: 'ECONNREFUSED'});
+    const cert = Object.assign(new Error('unable to verify the first certificate'), {
+      code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+    });
+    expect(manager['isRetryableError'](refused)).toBe(true);
+    expect(manager['isRetryableError'](cert)).toBe(true);
+    expect(manager['isRetryableError'](new Error('Any error'))).toBe(true);
+  });
+
+  describe('retry_transient_errors_only', () => {
+    let transientManager: Manager;
+
+    beforeEach(() => {
+      transientManager = new Manager({
+        ...options,
+        retry_transient_errors_only: true,
+      }, connection);
+    });
+
+    test('retries ECONNREFUSED when opt-in is enabled', () => {
+      const startSpy = jest.spyOn(transientManager, 'start');
+      connection.close = jest.fn().mockImplementation(() => {
+        connection.emit(ConnectionEvents.Closed);
+      });
+      transientManager['retries'] = 0;
+      transientManager['addEventListeners']();
+
+      const refused = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:12345'), {
+        code: 'ECONNREFUSED',
+      });
+      connection.emit(ConnectionEvents.Error, refused);
+
+      expect(transientManager['retryTimeout']).toBeDefined();
+      startSpy.mockClear();
+      jest.advanceTimersByTime(options.timeout_connect_retries);
+      expect(startSpy).toHaveBeenCalled();
+    });
+
+    test('fail-fast on permanent TLS certificate errors', () => {
+      const startSpy = jest.spyOn(transientManager, 'start');
+      const errorHandler = jest.fn();
+      transientManager.on('error', errorHandler);
+      connection.close = jest.fn();
+      transientManager['retries'] = 0;
+      transientManager['addEventListeners']();
+
+      const certError = Object.assign(new Error('unable to verify the first certificate'), {
+        code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+      });
+      connection.emit(ConnectionEvents.Error, certError);
+
+      expect(startSpy).not.toHaveBeenCalled();
+      expect(transientManager['retryTimeout']).toBeUndefined();
+      expect(errorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Non-retryable connection error'),
+        }),
+      );
+      expect(errorHandler.mock.calls[0][0].cause).toBe(certError);
+      expect(connection.close).toHaveBeenCalled();
+    });
+
+    test('retries unknown errors when opt-in is enabled', () => {
+      const startSpy = jest.spyOn(transientManager, 'start');
+      connection.close = jest.fn().mockImplementation(() => {
+        connection.emit(ConnectionEvents.Closed);
+      });
+      transientManager['retries'] = 0;
+      transientManager['addEventListeners']();
+
+      connection.emit(ConnectionEvents.Error, new Error('weird'));
+
+      expect(transientManager['retryTimeout']).toBeDefined();
+      startSpy.mockClear();
+      jest.advanceTimersByTime(options.timeout_connect_retries);
+      expect(startSpy).toHaveBeenCalled();
+    });
+
+    test('emits classic Max retries OFFLINE after exhausting transient retries', () => {
+      const errorHandler = jest.fn();
+      transientManager.on('error', errorHandler);
+      connection.close = jest.fn();
+      transientManager['retries'] = transientManager['retryStrategy'].maxConnectRetries;
+      transientManager['addEventListeners']();
+
+      const refused = Object.assign(new Error('connect ECONNREFUSED'), {code: 'ECONNREFUSED'});
+      connection.emit(ConnectionEvents.Error, refused);
+
+      expect(errorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Max retries reached, transport in silent mode, OFFLINE',
+        }),
+      );
+    });
+
+    test('isRetryableError classifies transient vs permanent', () => {
+      const refused = Object.assign(new Error('ECONNREFUSED'), {code: 'ECONNREFUSED'});
+      const cert = Object.assign(new Error('certificate has expired'), {code: 'CERT_HAS_EXPIRED'});
+      expect(transientManager['isRetryableError'](refused)).toBe(true);
+      expect(transientManager['isRetryableError'](cert)).toBe(false);
+      expect(transientManager['isRetryableError'](new Error('weird'))).toBe(true);
+    });
   });
 
   test('shouldTryToReconnect returns false when max retries reached', () => {

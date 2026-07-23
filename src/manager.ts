@@ -8,9 +8,13 @@
 import {IConnection, ConnectionEvents} from './connection';
 import {EventEmitter} from 'events';
 import {ConnectionManagerOptions, RetryStrategy} from './types';
+import {isTransientConnectionError} from './retryable-error';
 
-const ECONNREFUSED_REGEXP = /ECONNREFUSED/;
 const DEFAULT_INITIAL_DELAY_MS = 100;
+const MAX_RETRIES_OFFLINE_MESSAGE =
+  'Max retries reached, transport in silent mode, OFFLINE';
+const NON_RETRYABLE_OFFLINE_MESSAGE =
+  'Non-retryable connection error, transport in silent mode, OFFLINE';
 
 export class Manager extends EventEmitter {
   private connection: IConnection;
@@ -92,9 +96,12 @@ export class Manager extends EventEmitter {
   }
 
   private isRetryableError(error: Error) {
-    // TODO: Due bug in the orginal implementation
-    //       all the errors will get retried
-    return true; // !ECONNREFUSED_REGEXP.test(error.message);
+    // Default: retry all errors (historical behavior / original implementation).
+    // Opt-in: only retry transient network errors; fail-fast on permanent TLS/cert failures.
+    if (!this.options.retry_transient_errors_only) {
+      return true;
+    }
+    return isTransientConnectionError(error);
   }
 
   private shouldTryToReconnect(error: Error) {
@@ -111,8 +118,10 @@ export class Manager extends EventEmitter {
     } else {
       this.removeEventListeners();
       this.connection?.close();
-      this.emit('error',
-        new Error('Max retries reached, transport in silent mode, OFFLINE'));
+      const offlineError = this.isRetryableError(error) ?
+        new Error(MAX_RETRIES_OFFLINE_MESSAGE) :
+        Object.assign(new Error(NON_RETRYABLE_OFFLINE_MESSAGE), {cause: error});
+      this.emit('error', offlineError);
     }
   }
 

@@ -73,11 +73,9 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 4. **Flush can reorder / drop under write races** — **FIXED**  
    - Flush is serialized: one in-flight write at a time; entry stays at queue front until write succeeds.
 
-### Important (unchanged)
-
-5. **All errors treated as retryable**  
-   - Known TODO: `isRetryableError` always returns `true`.  
-   - Changing this is a **behavior change** — left unchanged for backward compatibility.
+5. **All errors treated as retryable** — **FIXED via opt-in**  
+   - Default still retries all errors (`retry_transient_errors_only: false`).  
+   - Opt-in `retry_transient_errors_only: true` retries only transient network errors and fail-fasts on permanent TLS/cert errors.
 
 ### Nice-to-have
 
@@ -91,7 +89,7 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 
 ## Explicit non-issues (intentional / legacy)
 
-- `isRetryableError` always `true` — original implementation bug preserved for compatibility.  
+- Default `isRetryableError` always `true` unless `retry_transient_errors_only: true` — preserved for compatibility.  
 - Winston 2 vs 3 formatting differences (`common.log` vs `safeStringify`) — by design.  
 - Default host/port `127.0.0.1:28777` — public contract.
 
@@ -105,6 +103,5 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 | ~~2~~ | ~~Clear `retryTimeout` on `Manager.close()`~~ | Done |
 | ~~3~~ | ~~Optional `socket_timeout_ms`~~ | Done |
 | ~~4~~ | ~~Flush ordering / in-flight write safety~~ | Done |
-| 5 | Winston 3 TCP/SSL unit parity (optional) | Mirror subset of Winston 2 integration tests |
-
-Do **not** change `isRetryableError` or default retry counts without an explicit compatibility decision.
+| ~~5~~ | ~~Opt-in `retry_transient_errors_only`~~ | Done |
+| 6 | Winston 3 TCP/SSL unit parity (optional) | Mirror subset of Winston 2 integration tests |

@@ -29,6 +29,13 @@ The transport automatically handles the following formatting:
 * `timeout_connect_retries`
   * The number of ms between each retry for a reconnect to logstash.
   * Default: `100`
+* `retry_transient_errors_only`
+  * When `true`, only retry **transient** network errors and fail-fast on permanent TLS/certificate failures (transport goes silent immediately).
+  * When `false` or unset (default), **all** connection errors are retried until `max_connect_retries` — this is the historical behavior and must stay the default for existing users.
+  * Transient examples: `ECONNREFUSED`, `ECONNRESET`, `ETIMEDOUT`, `ESOCKETTIMEDOUT`, `EPIPE`, `ENOTFOUND`, `EAI_AGAIN`, `ECONNABORTED`, and socket idle timeouts.
+  * Permanent examples: `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, `CERT_HAS_EXPIRED`, `ERR_TLS_CERT_ALTNAME_INVALID`, `DEPTH_ZERO_SELF_SIGNED_CERT`, `SELF_SIGNED_CERT_IN_CHAIN`, and other `ERR_TLS_*` / `ERR_SSL_*` failures.
+  * Unknown errors are still retried (safe default when the flag is on).
+  * Default: `false`
 * `retryStrategy`
   * Advanced retry configuration. If provided, takes precedence over `max_connect_retries` and `timeout_connect_retries`.
   * Two strategies are available:

@@ -27,7 +27,14 @@ export interface ConnectionManagerOptions {
   max_connect_retries?: number;
   timeout_connect_retries?: number;
   retryStrategy?: RetryStrategy;
+  /**
+   * When true, only retry transient network errors (ECONNREFUSED, ETIMEDOUT, etc.)
+   * and fail-fast on permanent TLS/certificate errors.
+   * Default: false — retry all errors (historical behavior).
+   */
+  retry_transient_errors_only?: boolean;
 }
+
 
 /**
  * Retry strategy configuration for connection failures.
