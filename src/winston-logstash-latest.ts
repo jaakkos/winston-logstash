@@ -84,6 +84,10 @@ class LogstashTransport extends Transport {
   }
 
   log(info: any, callback: Function) {
+    if (this.silent) {
+      return callback();
+    }
+
     setImmediate(() => {
       this.emit('logged', info);
     });

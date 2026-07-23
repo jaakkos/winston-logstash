@@ -294,33 +294,18 @@ describe('winston-logstash-latest transport', () => {
     jest.useRealTimers();
   });
 
-  // Characterization: Winston 2 short-circuits when silent; Winston 3 currently does not.
-  // See docs/bug-audit-findings.md — Critical: unbounded queue after OFFLINE.
-  test('characterization: log() still enqueues when silent is true', () => {
+  test('does not enqueue logs when transport is silent after OFFLINE', () => {
     const transport = new LogstashTransport({
       host: 'localhost',
       port: 28777,
     });
     transport.silent = true;
     mockManager.log.mockClear();
+    const callback = jest.fn();
 
-    transport.log({level: 'info', message: 'should not enqueue'}, jest.fn());
-
-    // Current (buggy) behavior: still forwards to manager
-    expect(mockManager.log).toHaveBeenCalled();
-  });
-
-  // Fails until log() checks this.silent like Winston 2 transport.
-  test.failing('does not enqueue logs when transport is silent after OFFLINE', () => {
-    const transport = new LogstashTransport({
-      host: 'localhost',
-      port: 28777,
-    });
-    transport.silent = true;
-    mockManager.log.mockClear();
-
-    transport.log({level: 'info', message: 'should not enqueue'}, jest.fn());
+    transport.log({level: 'info', message: 'should not enqueue'}, callback);
 
     expect(mockManager.log).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalled();
   });
 });

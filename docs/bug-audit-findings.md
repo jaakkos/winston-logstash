@@ -54,23 +54,15 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 
 ## Confirmed bugs
 
-### Critical
+### Critical — fixed
 
-1. **Winston 3 ignores `silent` after OFFLINE**  
-   - **Where:** `src/winston-logstash-latest.ts` — `onError` sets `this.silent = true`, but `log()` never checks it (Winston 2 does at `winston-logstash.ts:37-38`).  
-   - **Impact:** After max retries, logs keep enqueueing → unbounded `logQueue` memory growth.  
-   - **Evidence:**  
-     - `characterization: log() still enqueues when silent is true`  
-     - `test.failing('does not enqueue logs when transport is silent after OFFLINE')`  
-   - **Fix (additive, backward-compatible):** Early-return in `log()` when `this.silent`, calling `callback()` like Winston 2.
+1. **Winston 3 ignores `silent` after OFFLINE** — **FIXED**  
+   - `log()` now early-returns when `this.silent` (parity with Winston 2).  
+   - Test: `does not enqueue logs when transport is silent after OFFLINE`
 
-2. **`Manager.close()` does not clear `retryTimeout`**  
-   - **Where:** `src/manager.ts` `retry()` / `close()`.  
-   - **Impact:** Close during backoff → timer still fires `start()` → zombie reconnect / socket after teardown.  
-   - **Evidence:**  
-     - `characterization: close() does not clear pending retryTimeout`  
-     - `test.failing('close() during pending retry must not call start() when timer fires')`  
-   - **Fix:** `clearTimeout(this.retryTimeout)` in `close()` (and null the handle).
+2. **`Manager.close()` does not clear `retryTimeout`** — **FIXED**  
+   - `close()` clears and nulls `retryTimeout` before teardown.  
+   - Test: `close() during pending retry must not call start() when timer fires`
 
 ### Important
 
@@ -110,8 +102,8 @@ Root suite: **74 tests passing** (includes 2 expected `test.failing` guards for 
 
 | Priority | PR | Scope |
 |----------|-----|--------|
-| 1 | Fix Winston 3 silent gate | Flip `test.failing` in `winston-logstash-latest.test.ts`; early-return in `log()` |
-| 2 | Clear `retryTimeout` on `Manager.close()` | Flip `test.failing` in `manager.test.ts` |
+| ~~1~~ | ~~Fix Winston 3 silent gate~~ | Done |
+| ~~2~~ | ~~Clear `retryTimeout` on `Manager.close()`~~ | Done |
 | 3 | Optional `socket_timeout_ms` (or document dead Timeout) | Additive; default preserves current behavior |
 | 4 | Flush ordering / in-flight write safety | Tests first, then minimal fix |
 | 5 | Winston 3 TCP/SSL unit parity (optional) | Mirror subset of Winston 2 integration tests |

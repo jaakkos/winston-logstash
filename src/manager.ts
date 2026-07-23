@@ -164,6 +164,10 @@ export class Manager extends EventEmitter {
 
   close() {
     this.emit('closing');
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+      this.retryTimeout = undefined;
+    }
     this.flush();
     this.removeEventListeners();
     this.connection?.close();

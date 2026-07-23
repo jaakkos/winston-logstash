@@ -149,9 +149,7 @@ describe('Manager', () => {
     expect(startSpy).toHaveBeenCalled();
   });
 
-  // Desired: close() clears retryTimeout so start() never runs after teardown.
-  // Currently retryTimeout is left pending — see docs/bug-audit-findings.md.
-  test.failing('close() during pending retry must not call start() when timer fires', () => {
+  test('close() during pending retry must not call start() when timer fires', () => {
     const startSpy = jest.spyOn(manager, 'start');
     connection.close = jest.fn().mockImplementation(() => {
       connection.emit(ConnectionEvents.Closed);
@@ -164,27 +162,10 @@ describe('Manager', () => {
 
     startSpy.mockClear();
     manager.close();
+    expect(manager['retryTimeout']).toBeUndefined();
     jest.runAllTimers();
 
     expect(startSpy).not.toHaveBeenCalled();
-  });
-
-  // Characterization of current buggy behavior (timer still fires after close).
-  test('characterization: close() does not clear pending retryTimeout', () => {
-    const startSpy = jest.spyOn(manager, 'start');
-    connection.close = jest.fn().mockImplementation(() => {
-      connection.emit(ConnectionEvents.Closed);
-    });
-    manager['retries'] = 0;
-    manager['addEventListeners']();
-
-    connection.emit(ConnectionEvents.Error, new Error('transient'));
-    startSpy.mockClear();
-    manager.close();
-    jest.runAllTimers();
-
-    // Current (buggy) behavior: pending timeout still calls start()
-    expect(startSpy).toHaveBeenCalled();
   });
 
   test('stops flush when send returns false and resumes on Drain', () => {

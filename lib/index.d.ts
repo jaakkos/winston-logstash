@@ -152,7 +152,7 @@ declare module "winston-logstash-latest" {
         name: string;
         constructor(options: LogstashTransportOptions);
         onError(error: Error): void;
-        log(info: any, callback: Function): void;
+        log(info: any, callback: Function): any;
         close(): void;
     }
     export = LogstashTransport;
