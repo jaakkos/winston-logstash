@@ -157,6 +157,9 @@ module.exports = {
     '**/test/*_test.js',
   ],
 
+  // Smoke tests wait on live Logstash; keep above assertClient timeouts
+  testTimeout: 30000,
+
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   testPathIgnorePatterns: [
     '/node_modules/',
