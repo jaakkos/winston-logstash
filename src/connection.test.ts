@@ -91,6 +91,16 @@ describe('Connection', () => {
       socket.emit('timeout');
     });
 
+    // Timeout listener is registered, but nothing calls socket.setTimeout — dead path.
+    test('connect does not call socket.setTimeout (Timeout path never fires in practice)', () => {
+      socket.setTimeout = jest.fn();
+      MockedNet.Socket.mockReturnValue(socket as any);
+
+      connection.connect();
+
+      expect(socket.setTimeout).not.toHaveBeenCalled();
+    });
+
     test('emits drain event when socket drains', (done) => {
       MockedNet.Socket.mockReturnValue(socket as any);
       connection.connect();
@@ -236,6 +246,15 @@ describe('Connection', () => {
       expect(warnSpy).not.toHaveBeenCalled();
 
       warnSpy.mockRestore();
+    });
+
+    test('passes ssl_passphrase into secure context options', () => {
+      const optionsWithPassphrase = {
+        ...sslOptions,
+        ssl_passphrase: 'secret-passphrase',
+      };
+      const conn = new SecureConnection(optionsWithPassphrase);
+      expect(conn['secureContextOptions'].passphrase).toBe('secret-passphrase');
     });
   });
 });

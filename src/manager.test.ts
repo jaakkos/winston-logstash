@@ -1,14 +1,20 @@
+import {EventEmitter} from 'events';
 import {Manager} from './manager';
-import {ConnectionEvents, PlainConnection} from './connection';
+import {ConnectionEvents, IConnection} from './connection';
 import {RetryStrategy} from './types';
 
-jest.mock('./connection');
-
-const MockedPlainConnection = PlainConnection as jest.MockedClass<typeof PlainConnection>;
+function createMockConnection(): IConnection {
+  const connection = new EventEmitter() as IConnection;
+  connection.connect = jest.fn();
+  connection.close = jest.fn();
+  connection.send = jest.fn().mockReturnValue(true);
+  connection.readyToSend = jest.fn().mockReturnValue(true);
+  return connection;
+}
 
 describe('Manager', () => {
   let manager: Manager;
-  let connection: PlainConnection;
+  let connection: IConnection;
   const options = {
     host: 'localhost',
     port: 12345,
@@ -19,10 +25,8 @@ describe('Manager', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    connection = new MockedPlainConnection(options);
+    connection = createMockConnection();
     manager = new Manager(options, connection);
-    connection.send = jest.fn().mockReturnValue(true);
-    connection.readyToSend = jest.fn().mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -97,9 +101,11 @@ describe('Manager', () => {
   test('should stop retrying after max retries are reached', () => {
     const spyOnStart = jest.spyOn(manager, 'start');
     const error = new Error('Test error');
+    manager.on('error', jest.fn()); // swallow OFFLINE error
 
     // Set the number of retries to the max.
     manager['retries'] = manager['retryStrategy'].maxConnectRetries;
+    manager['addEventListeners']();
 
     // Trigger an error on the connection.
     connection.emit(ConnectionEvents.Error, error);
@@ -108,6 +114,137 @@ describe('Manager', () => {
 
     // Check that the manager's start method was not called.
     expect(spyOnStart).not.toHaveBeenCalled();
+  });
+
+  test('emits OFFLINE error when max retries are reached', () => {
+    const errorHandler = jest.fn();
+    manager.on('error', errorHandler);
+    connection.close = jest.fn();
+    manager['retries'] = manager['retryStrategy'].maxConnectRetries;
+    manager['addEventListeners']();
+
+    connection.emit(ConnectionEvents.Error, new Error('connection failed'));
+
+    expect(errorHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('OFFLINE'),
+      }),
+    );
+    expect(connection.close).toHaveBeenCalled();
+  });
+
+  test('schedules start() after connection error when under max retries', () => {
+    const startSpy = jest.spyOn(manager, 'start');
+    connection.close = jest.fn().mockImplementation(() => {
+      connection.emit(ConnectionEvents.Closed);
+    });
+    manager['retries'] = 0;
+    manager['addEventListeners']();
+
+    connection.emit(ConnectionEvents.Error, new Error('transient'));
+
+    expect(manager['retryTimeout']).toBeDefined();
+    startSpy.mockClear();
+    jest.advanceTimersByTime(options.timeout_connect_retries);
+    expect(startSpy).toHaveBeenCalled();
+  });
+
+  // Desired: close() clears retryTimeout so start() never runs after teardown.
+  // Currently retryTimeout is left pending — see docs/bug-audit-findings.md.
+  test.failing('close() during pending retry must not call start() when timer fires', () => {
+    const startSpy = jest.spyOn(manager, 'start');
+    connection.close = jest.fn().mockImplementation(() => {
+      connection.emit(ConnectionEvents.Closed);
+    });
+    manager['retries'] = 0;
+    manager['addEventListeners']();
+
+    connection.emit(ConnectionEvents.Error, new Error('transient'));
+    expect(manager['retryTimeout']).toBeDefined();
+
+    startSpy.mockClear();
+    manager.close();
+    jest.runAllTimers();
+
+    expect(startSpy).not.toHaveBeenCalled();
+  });
+
+  // Characterization of current buggy behavior (timer still fires after close).
+  test('characterization: close() does not clear pending retryTimeout', () => {
+    const startSpy = jest.spyOn(manager, 'start');
+    connection.close = jest.fn().mockImplementation(() => {
+      connection.emit(ConnectionEvents.Closed);
+    });
+    manager['retries'] = 0;
+    manager['addEventListeners']();
+
+    connection.emit(ConnectionEvents.Error, new Error('transient'));
+    startSpy.mockClear();
+    manager.close();
+    jest.runAllTimers();
+
+    // Current (buggy) behavior: pending timeout still calls start()
+    expect(startSpy).toHaveBeenCalled();
+  });
+
+  test('stops flush when send returns false and resumes on Drain', () => {
+    let sendCount = 0;
+    connection.send = jest.fn().mockImplementation((_entry, cb) => {
+      sendCount++;
+      cb();
+      // First write signals backpressure
+      return sendCount === 1 ? false : true;
+    });
+    manager['addEventListeners']();
+    manager['logQueue'].push(
+      ['entry-a', jest.fn()],
+      ['entry-b', jest.fn()],
+      ['entry-c', jest.fn()],
+    );
+
+    manager.flush();
+
+    expect(connection.send).toHaveBeenCalledTimes(1);
+    expect(manager['logQueue']).toHaveLength(2);
+
+    connection.emit(ConnectionEvents.Drain);
+
+    expect(connection.send).toHaveBeenCalledTimes(3);
+    expect(manager['logQueue']).toHaveLength(0);
+  });
+
+  test('flush is a no-op when connection is not readyToSend', () => {
+    connection.readyToSend = jest.fn().mockReturnValue(false);
+    manager['logQueue'].push(['held', jest.fn()]);
+
+    manager.flush();
+
+    expect(connection.send).not.toHaveBeenCalled();
+    expect(manager['logQueue']).toHaveLength(1);
+  });
+
+  test('retry uses exponentialBackoff delay progression', () => {
+    const backoffManager = new Manager({
+      retryStrategy: {
+        strategy: 'exponentialBackoff',
+        maxConnectRetries: -1,
+        initialDelayMs: 100,
+        maxDelayBeforeRetryMs: 500,
+      },
+    }, connection);
+    const startSpy = jest.spyOn(backoffManager, 'start');
+    connection.close = jest.fn().mockImplementation(() => {
+      connection.emit(ConnectionEvents.Closed);
+    });
+    backoffManager['retries'] = 0;
+    backoffManager['addEventListeners']();
+
+    connection.emit(ConnectionEvents.Error, new Error('transient'));
+    expect(backoffManager['nextRetryDelayMs']).toBe(200);
+
+    startSpy.mockClear();
+    jest.advanceTimersByTime(100);
+    expect(startSpy).toHaveBeenCalled();
   });
 
   test('should close the manager', () => {
@@ -121,7 +258,7 @@ describe('Manager', () => {
   });
 
   test('can set a new connection', () => {
-    const newConnection = new MockedPlainConnection(options);
+    const newConnection = createMockConnection();
     manager.setConnection(newConnection);
     expect(manager['connection']).toBe(newConnection);
   });

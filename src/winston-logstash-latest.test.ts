@@ -249,4 +249,78 @@ describe('winston-logstash-latest transport', () => {
     expect(parsed.bgColor).toBe('Red Background');
     expect(parsed.combined).toBe('Bold Red');
   });
+
+  test('onError sets silent and emits error', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+    const errorHandler = jest.fn();
+    transport.on('error', errorHandler);
+
+    const offline = new Error('Max retries reached, transport in silent mode, OFFLINE');
+    transport.onError(offline);
+
+    expect(transport.silent).toBe(true);
+    expect(errorHandler).toHaveBeenCalledWith(offline);
+  });
+
+  test('close delegates to manager.close', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+
+    transport.close();
+
+    expect(mockManager.close).toHaveBeenCalled();
+  });
+
+  test('emits logged asynchronously after log()', () => {
+    jest.useFakeTimers();
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+    const loggedHandler = jest.fn();
+    transport.on('logged', loggedHandler);
+
+    const info = {level: 'info', message: 'async'};
+    transport.log(info, jest.fn());
+
+    expect(loggedHandler).not.toHaveBeenCalled();
+    jest.runAllTimers();
+    expect(loggedHandler).toHaveBeenCalledWith(info);
+    jest.useRealTimers();
+  });
+
+  // Characterization: Winston 2 short-circuits when silent; Winston 3 currently does not.
+  // See docs/bug-audit-findings.md — Critical: unbounded queue after OFFLINE.
+  test('characterization: log() still enqueues when silent is true', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+    transport.silent = true;
+    mockManager.log.mockClear();
+
+    transport.log({level: 'info', message: 'should not enqueue'}, jest.fn());
+
+    // Current (buggy) behavior: still forwards to manager
+    expect(mockManager.log).toHaveBeenCalled();
+  });
+
+  // Fails until log() checks this.silent like Winston 2 transport.
+  test.failing('does not enqueue logs when transport is silent after OFFLINE', () => {
+    const transport = new LogstashTransport({
+      host: 'localhost',
+      port: 28777,
+    });
+    transport.silent = true;
+    mockManager.log.mockClear();
+
+    transport.log({level: 'info', message: 'should not enqueue'}, jest.fn());
+
+    expect(mockManager.log).not.toHaveBeenCalled();
+  });
 });
