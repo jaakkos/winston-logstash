@@ -47,7 +47,7 @@
     "timekeeper": "^2.3.1",
     "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.4",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.53.1",
     "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 || ^3.0.0"
   },
