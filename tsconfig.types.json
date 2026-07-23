@@ -6,11 +6,14 @@
     "target": "ES5",
     "module": "AMD",
     "baseUrl": ".",
+    "rootDir": "./src",
     "outDir": "lib",
     "skipLibCheck": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outFile": "lib/index.d.ts"
+    "outFile": "lib/index.d.ts",
+    "ignoreDeprecations": "6.0",
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"]
