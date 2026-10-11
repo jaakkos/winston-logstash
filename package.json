@@ -11,9 +11,10 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "watch": "babel src --out-dir lib --extensions '.ts' --watch",
-    "build": "babel src --out-dir lib --extensions '.ts' && tsc --project tsconfig.types.json",
-    "build:types": "tsc --project tsconfig.types.json",
-    "version": "auto-changelog -p && git add CHANGELOG.md"
+    "build": "babel src --out-dir lib --extensions '.ts' && npm run build:types",
+    "build:types": "node node_modules/typescript7/bin/tsc --project tsconfig.types.json && node scripts/build-index-dts.js",
+    "version": "auto-changelog -p && git add CHANGELOG.md",
+    "typecheck": "node node_modules/typescript7/bin/tsc --project tsconfig.json"
   },
   "files": [
     "lib/"
@@ -29,10 +30,10 @@
     "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 || ^3.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.28.6",
-    "@babel/core": "^7.28.6",
-    "@babel/preset-env": "^7.28.6",
-    "@babel/preset-typescript": "^7.28.5",
+    "@babel/cli": "^8.0.6",
+    "@babel/core": "^8.0.7",
+    "@babel/preset-env": "^8.0.6",
+    "@babel/preset-typescript": "^8.0.7",
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.2.0",
@@ -47,8 +48,9 @@
     "timekeeper": "^2.3.1",
     "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.4",
-    "typescript": "^6.0.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.53.1",
+    "typescript7": "npm:typescript@^7.0.2",
     "winston": "^0.7.3 || ^1.0.0 || ^2.0.0 || ^3.0.0"
   },
   "keywords": [

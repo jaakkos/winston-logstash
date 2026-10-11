@@ -5,9 +5,9 @@
  *
  */
 
-import {IConnection, ConnectionEvents} from './connection';
+import {type IConnection, ConnectionEvents} from './connection';
 import {EventEmitter} from 'events';
-import {ConnectionManagerOptions, RetryStrategy} from './types';
+import type {ConnectionManagerOptions, RetryStrategy} from './types';
 import {isTransientConnectionError} from './retryable-error';
 
 const DEFAULT_INITIAL_DELAY_MS = 100;

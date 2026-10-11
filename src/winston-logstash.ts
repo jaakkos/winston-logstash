@@ -7,8 +7,8 @@
 import {Transport} from 'winston';
 const common = require('winston/lib/winston/common');
 import {Manager} from './manager';
-import {LogstashOptions} from './types';
-import {IConnection, PlainConnection, SecureConnection} from './connection';
+import type {LogstashOptions} from './types';
+import {type IConnection, PlainConnection, SecureConnection} from './connection';
 
 export class Logstash extends Transport {
   private node_name: string;
