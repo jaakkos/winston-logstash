@@ -8,7 +8,7 @@
 import {Socket} from 'net';
 import {readFileSync} from 'fs';
 import tls from 'tls';
-import {ConnectionOptions, SecureConnectionOptions} from './types';
+import type {ConnectionOptions, SecureConnectionOptions} from './types';
 import {EventEmitter} from 'events';
 
 export enum ConnectionActions {

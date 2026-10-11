@@ -1,18 +1,15 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "strict": true,
-    "target": "ES5",
-    "module": "AMD",
-    "baseUrl": ".",
+    "target": "ES2022",
     "rootDir": "./src",
-    "outDir": "lib",
+    "outDir": ".types-tmp",
     "skipLibCheck": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outFile": "lib/index.d.ts",
-    "ignoreDeprecations": "6.0",
     "types": ["node"]
   },
   "include": ["src"],

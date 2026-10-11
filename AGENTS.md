@@ -40,6 +40,10 @@ src/
 - Source: TypeScript in `src/`
 - Output: JavaScript in `lib/` (compiled via Babel)
 - Always run `npm run build` after changes
+- Building needs Node >= 22 (Babel 8 / TypeScript 7); the emitted `lib/` still targets Node 18
+- `typescript` is aliased to `@typescript/typescript6` (JS API for ts-jest / typescript-eslint); the TS 7 compiler is installed as `typescript7` and used for `build:types` / `typecheck`
+- `lib/index.d.ts` is bundled from per-file declarations by `scripts/build-index-dts.js` (TS 7 removed `outFile`) and must stay byte-compatible
+- Use `import type` for type-only imports (Babel 8 no longer elides them, which would add runtime `require`s)
 
 ## Configuration Options
 

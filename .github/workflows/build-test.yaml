@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x, 26.x]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
       - uses: actions/checkout@v7
@@ -27,4 +27,32 @@ jobs:
       - name: Install dependencies
         run: npm install
       - run: npm run build
+      - run: npm run typecheck
+      - run: npm run lint
       - run: npm test
+
+  runtime-compat:
+    # The published lib/ still targets Node 18, even though building it
+    # (Babel 8, TypeScript 7) requires Node 22+.
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use Node.js 22.x for building
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+      - name: Install dependencies
+        run: npm install
+      - run: npm run build
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Load built transports
+        run: |
+          node -e "require('./lib/winston-logstash'); require('./lib/winston-logstash-latest')"

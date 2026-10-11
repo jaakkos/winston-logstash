@@ -2,14 +2,12 @@
   "compilerOptions": {
     "noEmit": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "module": "commonjs",
+    "moduleResolution": "bundler",
     "strict": true,
-    "target": "ES5",
-    "module": "AMD",
-    "baseUrl": ".",
+    "target": "ES2022",
     "outDir": "lib",
     "skipLibCheck": true,
-    "ignoreDeprecations": "6.0",
     "types": ["node", "jest"]
   },
   "include": ["src"],

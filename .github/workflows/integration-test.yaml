@@ -24,14 +24,20 @@ jobs:
       - name: Start containers for Winston ${{ matrix.winston-version }}
         working-directory: ./test-bench/logstash/
         run: docker compose -f "docker-compose.yml" up -d
-      - name: Use Node.js ${{ matrix.node-version }}
+      # Babel 8 / TypeScript 7 need Node >= 20.19 / 22.12, so the library is
+      # always built on Node 22 and then exercised on every supported runtime.
+      - name: Use Node.js 22.x for building
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
       - name: Install base project deps
         run: npm install
       - name: Build base project
         run: npm run build
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: Install dependencies for test case
         working-directory: ./test-bench/winston-${{ matrix.winston-version }}
         run: npm install
