@@ -82,5 +82,10 @@
   },
   "dependencies": {
     "winston-transport": "^4.9.0"
+  },
+  "overrides": {
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^4.3.2"
+    }
   }
 }
